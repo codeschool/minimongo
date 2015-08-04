@@ -1,6 +1,4 @@
-require=(function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof require=="function"&&require;if(!u&&a)return a(o,!0);if(i)return i(o,!0);throw new Error("Cannot find module '"+o+"'")}var f=n[o]={exports:{}};t[o][0].call(f.exports,function(e){var n=t[o][1][e];return s(n?n:e)},f,f.exports,e,t,n,r)}return n[o].exports}var i=typeof require=="function"&&require;for(var o=0;o<r.length;o++)s(r[o]);return s})({"minimongo":[function(require,module,exports){
-module.exports=require('1+WUYb');
-},{}],"1+WUYb":[function(require,module,exports){
+require=(function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof require=="function"&&require;if(!u&&a)return a(o,!0);if(i)return i(o,!0);throw new Error("Cannot find module '"+o+"'")}var f=n[o]={exports:{}};t[o][0].call(f.exports,function(e){var n=t[o][1][e];return s(n?n:e)},f,f.exports,e,t,n,r)}return n[o].exports}var i=typeof require=="function"&&require;for(var o=0;o<r.length;o++)s(r[o]);return s})({"Focm2+":[function(require,module,exports){
 exports.MemoryDb = require('./lib/MemoryDb');
 exports.LocalStorageDb = require('./lib/LocalStorageDb');
 exports.IndexedDb = require('./lib/IndexedDb');
@@ -9,11 +7,13 @@ exports.RemoteDb = require('./lib/RemoteDb');
 exports.HybridDb = require('./lib/HybridDb');
 exports.utils = require('./lib/utils');
 
-},{"./lib/HybridDb":6,"./lib/IndexedDb":7,"./lib/LocalStorageDb":8,"./lib/MemoryDb":9,"./lib/RemoteDb":10,"./lib/WebSQLDb":11,"./lib/utils":14}],"dsrzUy":[function(require,module,exports){
+},{"./lib/HybridDb":6,"./lib/IndexedDb":7,"./lib/LocalStorageDb":8,"./lib/MemoryDb":9,"./lib/RemoteDb":10,"./lib/WebSQLDb":11,"./lib/utils":14}],"minimongo":[function(require,module,exports){
+module.exports=require('Focm2+');
+},{}],"jquery":[function(require,module,exports){
+module.exports=require('/nayFu');
+},{}],"/nayFu":[function(require,module,exports){
 module.exports = window.$;
 
-},{}],"jquery":[function(require,module,exports){
-module.exports=require('dsrzUy');
 },{}],5:[function(require,module,exports){
 var _ = require('lodash');
 
@@ -342,7 +342,7 @@ EJSON.clone = function (v) {
 
 module.exports = EJSON;
 
-},{"lodash":"z2coUu"}],6:[function(require,module,exports){
+},{"lodash":"nJZoxB"}],6:[function(require,module,exports){
 
 /*
 
@@ -657,7 +657,7 @@ HybridCollection = (function() {
 
 })();
 
-},{"./utils":14,"lodash":"z2coUu"}],7:[function(require,module,exports){
+},{"./utils":14,"lodash":"nJZoxB"}],7:[function(require,module,exports){
 var Collection, IDBStore, IndexedDb, async, compileSort, processFind, utils, _;
 
 _ = require('lodash');
@@ -1108,7 +1108,7 @@ Collection = (function() {
 
 })();
 
-},{"./selector":13,"./utils":14,"async":17,"idb-wrapper":20,"lodash":"z2coUu"}],8:[function(require,module,exports){
+},{"./selector":13,"./utils":14,"async":17,"idb-wrapper":20,"lodash":"nJZoxB"}],8:[function(require,module,exports){
 var Collection, LocalStorageDb, compileSort, processFind, utils, _;
 
 _ = require('lodash');
@@ -1407,7 +1407,7 @@ Collection = (function() {
 
 })();
 
-},{"./selector":13,"./utils":14,"lodash":"z2coUu"}],9:[function(require,module,exports){
+},{"./selector":13,"./utils":14,"lodash":"nJZoxB"}],9:[function(require,module,exports){
 var Collection, MemoryDb, compileSort, processFind, utils, _;
 
 _ = require('lodash');
@@ -1617,7 +1617,7 @@ Collection = (function() {
 
 })();
 
-},{"./selector":13,"./utils":14,"lodash":"z2coUu"}],10:[function(require,module,exports){
+},{"./selector":13,"./utils":14,"lodash":"nJZoxB"}],10:[function(require,module,exports){
 var $, Collection, RemoteDb, async, jQueryHttpClient, utils, _;
 
 _ = require('lodash');
@@ -1813,7 +1813,7 @@ Collection = (function() {
 
 })();
 
-},{"./jQueryHttpClient":12,"./utils":14,"async":17,"jquery":"dsrzUy","lodash":"z2coUu"}],11:[function(require,module,exports){
+},{"./jQueryHttpClient":12,"./utils":14,"async":17,"jquery":"/nayFu","lodash":"nJZoxB"}],11:[function(require,module,exports){
 var Collection, WebSQLDb, async, compileSort, doNothing, processFind, utils, _;
 
 _ = require('lodash');
@@ -2236,7 +2236,7 @@ Collection = (function() {
 
 })();
 
-},{"./selector":13,"./utils":14,"async":17,"lodash":"z2coUu"}],12:[function(require,module,exports){
+},{"./selector":13,"./utils":14,"async":17,"lodash":"nJZoxB"}],12:[function(require,module,exports){
 module.exports = function(method, url, params, data, success, error) {
   var fullUrl, req;
   fullUrl = url + "?" + $.param(params);
@@ -3003,7 +3003,7 @@ LocalCollection._compileSort = function (spec) {
 exports.compileDocumentSelector = compileDocumentSelector;
 exports.compileSort = LocalCollection._compileSort;
 
-},{"./EJSON":5,"lodash":"z2coUu"}],14:[function(require,module,exports){
+},{"./EJSON":5,"lodash":"nJZoxB"}],14:[function(require,module,exports){
 var async, bowser, compileDocumentSelector, compileSort, deg2rad, getDistanceFromLatLngInM, isLocalStorageSupported, pointInPolygon, processGeoIntersectsOperator, processNearOperator, _;
 
 _ = require('lodash');
@@ -3304,9 +3304,9 @@ exports.regularizeUpsert = function(docs, bases, success, error) {
   return [items, success, error];
 };
 
-},{"./HybridDb":6,"./IndexedDb":7,"./LocalStorageDb":8,"./MemoryDb":9,"./WebSQLDb":11,"./selector":13,"async":17,"bowser":18,"lodash":"z2coUu"}],"lodash":[function(require,module,exports){
-module.exports=require('z2coUu');
-},{}],"z2coUu":[function(require,module,exports){
+},{"./HybridDb":6,"./IndexedDb":7,"./LocalStorageDb":8,"./MemoryDb":9,"./WebSQLDb":11,"./selector":13,"async":17,"bowser":18,"lodash":"nJZoxB"}],"lodash":[function(require,module,exports){
+module.exports=require('nJZoxB');
+},{}],"nJZoxB":[function(require,module,exports){
 module.exports = window._;
 
 },{}],17:[function(require,module,exports){
@@ -4370,8 +4370,8 @@ module.exports = window._;
 
 }());
 
-}).call(this,require("/home/clayton/dev/mWater/minimongo/node_modules/browserify/node_modules/insert-module-globals/node_modules/process/browser.js"))
-},{"/home/clayton/dev/mWater/minimongo/node_modules/browserify/node_modules/insert-module-globals/node_modules/process/browser.js":19}],18:[function(require,module,exports){
+}).call(this,require("FWaASH"))
+},{"FWaASH":19}],18:[function(require,module,exports){
 /*!
   * Bowser - a browser detector
   * https://github.com/ded/bowser
@@ -4380,7 +4380,7 @@ module.exports = window._;
 
 !function (name, definition) {
   if (typeof module != 'undefined' && module.exports) module.exports['browser'] = definition()
-  else if (typeof define == 'function') define(definition)
+  else if (typeof define == 'function' && define.amd) define(definition)
   else this[name] = definition()
 }('bowser', function () {
   /**
@@ -4396,9 +4396,15 @@ module.exports = window._;
       return (match && match.length > 1 && match[1]) || '';
     }
 
+    function getSecondMatch(regex) {
+      var match = ua.match(regex);
+      return (match && match.length > 1 && match[2]) || '';
+    }
+
     var iosdevice = getFirstMatch(/(ipod|iphone|ipad)/i).toLowerCase()
       , likeAndroid = /like android/i.test(ua)
       , android = !likeAndroid && /android/i.test(ua)
+      , edgeVersion = getFirstMatch(/edge\/(\d+(\.\d+)?)/i)
       , versionIdentifier = getFirstMatch(/version\/(\d+(\.\d+)?)/i)
       , tablet = /tablet/i.test(ua)
       , mobile = !tablet && /[^-]mobi/i.test(ua)
@@ -4415,8 +4421,14 @@ module.exports = window._;
       result = {
         name: 'Windows Phone'
       , windowsphone: t
-      , msie: t
-      , version: getFirstMatch(/iemobile\/(\d+(\.\d+)?)/i)
+      }
+      if (edgeVersion) {
+        result.msedge = t
+        result.version = edgeVersion
+      }
+      else {
+        result.msie = t
+        result.version = getFirstMatch(/iemobile\/(\d+(\.\d+)?)/i)
       }
     }
     else if (/msie|trident/i.test(ua)) {
@@ -4424,6 +4436,13 @@ module.exports = window._;
         name: 'Internet Explorer'
       , msie: t
       , version: getFirstMatch(/(?:msie |rv:)(\d+(\.\d+)?)/i)
+      }
+    }
+    else if (/chrome.+? edge/i.test(ua)) {
+      result = {
+        name: 'Microsoft Edge'
+      , msedge: t
+      , version: edgeVersion
       }
     }
     else if (/chrome|crios|crmo/i.test(ua)) {
@@ -4522,10 +4541,15 @@ module.exports = window._;
       , version: versionIdentifier
       }
     }
-    else result = {}
+    else {
+      result = {
+        name: getFirstMatch(/^(.*)\/(.*) /),
+        version: getSecondMatch(/^(.*)\/(.*) /)
+     };
+   }
 
     // set webkit or gecko flag for browsers based on these engines
-    if (/(apple)?webkit/i.test(ua)) {
+    if (!result.msedge && /(apple)?webkit/i.test(ua)) {
       result.name = result.name || "Webkit"
       result.webkit = t
       if (!result.version && versionIdentifier) {
@@ -4538,7 +4562,7 @@ module.exports = window._;
     }
 
     // set OS flags for platforms that have multiple browsers
-    if (android || result.silk) {
+    if (!result.msedge && (android || result.silk)) {
       result.android = t
     } else if (iosdevice) {
       result[iosdevice] = t
@@ -4547,13 +4571,13 @@ module.exports = window._;
 
     // OS version extraction
     var osVersion = '';
-    if (iosdevice) {
+    if (result.windowsphone) {
+      osVersion = getFirstMatch(/windows phone (?:os)?\s?(\d+(\.\d+)*)/i);
+    } else if (iosdevice) {
       osVersion = getFirstMatch(/os (\d+([_\s]\d+)*) like mac os x/i);
       osVersion = osVersion.replace(/[_\s]/g, '.');
     } else if (android) {
       osVersion = getFirstMatch(/android[ \/-](\d+(\.\d+)*)/i);
-    } else if (result.windowsphone) {
-      osVersion = getFirstMatch(/windows phone (?:os)?\s?(\d+(\.\d+)*)/i);
     } else if (result.webos) {
       osVersion = getFirstMatch(/(?:web|hpw)os\/(\d+(\.\d+)*)/i);
     } else if (result.blackberry) {
@@ -4577,12 +4601,14 @@ module.exports = window._;
 
     // Graded Browser Support
     // http://developer.yahoo.com/yui/articles/gbs
-    if ((result.msie && result.version >= 10) ||
+    if (result.msedge ||
+        (result.msie && result.version >= 10) ||
         (result.chrome && result.version >= 20) ||
         (result.firefox && result.version >= 20.0) ||
         (result.safari && result.version >= 6) ||
         (result.opera && result.version >= 10.0) ||
-        (result.ios && result.osversion && result.osversion.split(".")[0] >= 6)
+        (result.ios && result.osversion && result.osversion.split(".")[0] >= 6) ||
+        (result.blackberry && result.version >= 10.1)
         ) {
       result.a = t;
     }
@@ -4601,6 +4627,17 @@ module.exports = window._;
 
   var bowser = detect(typeof navigator !== 'undefined' ? navigator.userAgent : '')
 
+  bowser.test = function (browserList) {
+    for (var i = 0; i < browserList.length; ++i) {
+      var browserItem = browserList[i];
+      if (typeof browserItem=== 'string') {
+        if (browserItem in bowser) {
+          return true;
+        }
+      }
+    }
+    return false;
+  }
 
   /*
    * Set our detect method to the main bowser object so we can
@@ -4657,6 +4694,16 @@ process.browser = true;
 process.env = {};
 process.argv = [];
 
+function noop() {}
+
+process.on = noop;
+process.addListener = noop;
+process.once = noop;
+process.off = noop;
+process.removeListener = noop;
+process.removeAllListeners = noop;
+process.emit = noop;
+
 process.binding = function (name) {
     throw new Error('process.binding is not supported');
 }
@@ -4672,7 +4719,7 @@ process.chdir = function (dir) {
 
 /**
  * @license IDBWrapper - A cross-browser wrapper for IndexedDB
- * Copyright (c) 2011 - 2013 Jens Arps
+ * Copyright (c) 2011 - 2015 Jens Arps
  * http://jensarps.de/
  *
  * Licensed under the MIT (X11) license
@@ -4693,6 +4740,7 @@ process.chdir = function (dir) {
   var defaultErrorHandler = function (error) {
     throw error;
   };
+  var defaultSuccessHandler = function () {};
 
   var defaults = {
     storeName: 'Store',
@@ -4712,7 +4760,7 @@ process.chdir = function (dir) {
    *
    * @constructor
    * @name IDBStore
-   * @version 1.4.1
+   * @version 1.5
    *
    * @param {Object} [kwArgs] An options object used to configure the store and
    *  set callbacks
@@ -4784,7 +4832,7 @@ process.chdir = function (dir) {
     onStoreReady && (this.onStoreReady = onStoreReady);
 
     var env = typeof window == 'object' ? window : self;
-    this.idb = env.indexedDB || env.webkitIndexedDB || env.mozIndexedDB;
+    this.idb = env.indexedDB || env.webkitIndexedDB || env.mozIndexedDB || env.shimIndexedDB;
     this.keyRange = env.IDBKeyRange || env.webkitIDBKeyRange || env.mozIDBKeyRange;
 
     this.features = {
@@ -4818,7 +4866,7 @@ process.chdir = function (dir) {
      *
      * @type String
      */
-    version: '1.4.1',
+    version: '1.5',
 
     /**
      * A reference to the IndexedDB object
@@ -4855,6 +4903,13 @@ process.chdir = function (dir) {
      * @type String
      */
     storeName: null,
+
+    /**
+     * The prefix to prepend to the store name
+     *
+     * @type String
+     */
+    storePrefix: null,
 
     /**
      * The key path
@@ -5062,10 +5117,20 @@ process.chdir = function (dir) {
     /**
      * Deletes the database used for this store if the IDB implementations
      * provides that functionality.
+     *
+     * @param {Function} [onSuccess] A callback that is called if deletion
+     *  was successful.
+     * @param {Function} [onError] A callback that is called if deletion
+     *  failed.
      */
-    deleteDatabase: function () {
+    deleteDatabase: function (onSuccess, onError) {
       if (this.idb.deleteDatabase) {
-        this.idb.deleteDatabase(this.dbName);
+        this.db.close();
+        var deleteRequest = this.idb.deleteDatabase(this.dbName);
+        deleteRequest.onsuccess = onSuccess;
+        deleteRequest.onerror = onError;
+      } else {
+        onError(new Error('Browser does not support IndexedDB deleteDatabase!'));
       }
     },
 
@@ -5112,7 +5177,7 @@ process.chdir = function (dir) {
         value = key;
       }
       onError || (onError = defaultErrorHandler);
-      onSuccess || (onSuccess = noop);
+      onSuccess || (onSuccess = defaultSuccessHandler);
 
       var hasSuccess = false,
           result = null,
@@ -5154,7 +5219,7 @@ process.chdir = function (dir) {
      */
     get: function (key, onSuccess, onError) {
       onError || (onError = defaultErrorHandler);
-      onSuccess || (onSuccess = noop);
+      onSuccess || (onSuccess = defaultSuccessHandler);
 
       var hasSuccess = false,
           result = null;
@@ -5188,7 +5253,7 @@ process.chdir = function (dir) {
      */
     remove: function (key, onSuccess, onError) {
       onError || (onError = defaultErrorHandler);
-      onSuccess || (onSuccess = noop);
+      onSuccess || (onSuccess = defaultSuccessHandler);
 
       var hasSuccess = false,
           result = null;
@@ -5224,7 +5289,7 @@ process.chdir = function (dir) {
      */
     batch: function (dataArray, onSuccess, onError) {
       onError || (onError = defaultErrorHandler);
-      onSuccess || (onSuccess = noop);
+      onSuccess || (onSuccess = defaultSuccessHandler);
 
       if(Object.prototype.toString.call(dataArray) != '[object Array]'){
         onError(new Error('dataArray argument must be of type Array.'));
@@ -5298,6 +5363,93 @@ process.chdir = function (dir) {
       });
 
       return this.batch(batchData, onSuccess, onError);
+    },
+
+    /**
+     * Like putBatch, takes an array of objects and stores them in a single
+     * transaction, but allows processing of the result values.  Returns the
+     * processed records containing the key for newly created records to the
+     * onSuccess calllback instead of only returning true or false for success.
+     * In addition, added the option for the caller to specify a key field that
+     * should be set to the newly created key.
+     *
+     * @param {Array} dataArray An array of objects to store
+     * @param {Object} [options] An object containing optional options
+     * @param {String} [options.keyField=this.keyPath] Specifies a field in the record to update
+     *  with the auto-incrementing key. Defaults to the store's keyPath.
+     * @param {Function} [onSuccess] A callback that is called if all operations
+     *  were successful.
+     * @param {Function} [onError] A callback that is called if an error
+     *  occurred during one of the operations.
+     * @returns {IDBTransaction} The transaction used for this operation.
+     *
+     */
+    upsertBatch: function (dataArray, options, onSuccess, onError) {
+      // handle `dataArray, onSuccess, onError` signature
+      if (typeof options == 'function') {
+        onSuccess = options;
+        onError = onSuccess;
+        options = {};
+      }
+
+      onError || (onError = defaultErrorHandler);
+      onSuccess || (onSuccess = defaultSuccessHandler);
+      options || (options = {});
+
+      if (Object.prototype.toString.call(dataArray) != '[object Array]') {
+        onError(new Error('dataArray argument must be of type Array.'));
+      }
+      var batchTransaction = this.db.transaction([this.storeName], this.consts.READ_WRITE);
+      batchTransaction.oncomplete = function () {
+        if (hasSuccess) {
+          onSuccess(dataArray);
+        } else {
+          onError(false);
+        }
+      };
+      batchTransaction.onabort = onError;
+      batchTransaction.onerror = onError;
+
+      var keyField = options.keyField || this.keyPath;
+      var count = dataArray.length;
+      var called = false;
+      var hasSuccess = false;
+      var index = 0; // assume success callbacks are executed in order
+
+      var onItemSuccess = function (event) {
+        var record = dataArray[index++];
+        record[keyField] = event.target.result;
+
+        count--;
+        if (count === 0 && !called) {
+          called = true;
+          hasSuccess = true;
+        }
+      };
+
+      dataArray.forEach(function (record) {
+        var key = record.key;
+
+        var onItemError = function (err) {
+          batchTransaction.abort();
+          if (!called) {
+            called = true;
+            onError(err);
+          }
+        };
+
+        var putRequest;
+        if (this.keyPath !== null) { // in-line keys
+          this._addIdPropertyIfNeeded(record);
+          putRequest = batchTransaction.objectStore(this.storeName).put(record);
+        } else { // out-of-line keys
+          putRequest = batchTransaction.objectStore(this.storeName).put(record, key);
+        }
+        putRequest.onsuccess = onItemSuccess;
+        putRequest.onerror = onItemError;
+      }, this);
+
+      return batchTransaction;
     },
 
     /**
@@ -5378,7 +5530,7 @@ process.chdir = function (dir) {
      */
     getBatch: function (keyArray, onSuccess, onError, arrayType) {
       onError || (onError = defaultErrorHandler);
-      onSuccess || (onSuccess = noop);
+      onSuccess || (onSuccess = defaultSuccessHandler);
       arrayType || (arrayType = 'sparse');
 
       if(Object.prototype.toString.call(keyArray) != '[object Array]'){
@@ -5441,7 +5593,7 @@ process.chdir = function (dir) {
      */
     getAll: function (onSuccess, onError) {
       onError || (onError = defaultErrorHandler);
-      onSuccess || (onSuccess = noop);
+      onSuccess || (onSuccess = defaultSuccessHandler);
       var getAllTransaction = this.db.transaction([this.storeName], this.consts.READ_ONLY);
       var store = getAllTransaction.objectStore(this.storeName);
       if (store.getAll) {
@@ -5534,7 +5686,7 @@ process.chdir = function (dir) {
      */
     clear: function (onSuccess, onError) {
       onError || (onError = defaultErrorHandler);
-      onSuccess || (onSuccess = noop);
+      onSuccess || (onSuccess = defaultSuccessHandler);
 
       var hasSuccess = false,
           result = null;
@@ -5680,6 +5832,10 @@ process.chdir = function (dir) {
      *  iteration has ended
      * @param {Function} [options.onError=throw] A callback to be called
      *  if an error occurred during the operation.
+     * @param {Number} [options.limit=Infinity] Limit the number of returned
+     *  results to this number
+     * @param {Number} [options.offset=0] Skip the provided number of results
+     *  in the resultset
      * @returns {IDBTransaction} The transaction used for this operation.
      */
     iterate: function (onItem, options) {
@@ -5691,7 +5847,9 @@ process.chdir = function (dir) {
         keyRange: null,
         writeAccess: false,
         onEnd: null,
-        onError: defaultErrorHandler
+        onError: defaultErrorHandler,
+        limit: Infinity,
+        offset: 0
       }, options || {});
 
       var directionType = options.order.toLowerCase() == 'desc' ? 'PREV' : 'NEXT';
@@ -5705,6 +5863,7 @@ process.chdir = function (dir) {
       if (options.index) {
         cursorTarget = cursorTarget.index(options.index);
       }
+      var recordCount = 0;
 
       cursorTransaction.oncomplete = function () {
         if (!hasSuccess) {
@@ -5725,9 +5884,19 @@ process.chdir = function (dir) {
       cursorRequest.onsuccess = function (event) {
         var cursor = event.target.result;
         if (cursor) {
-          onItem(cursor.value, cursor, cursorTransaction);
-          if (options.autoContinue) {
-            cursor['continue']();
+          if (options.offset) {
+            cursor.advance(options.offset);
+            options.offset = 0;
+          } else {
+            onItem(cursor.value, cursor, cursorTransaction);
+            recordCount++;
+            if (options.autoContinue) {
+              if (recordCount + options.offset < options.limit) {
+                cursor['continue']();
+              } else {
+                hasSuccess = true;
+              }
+            }
           }
         } else {
           hasSuccess = true;
@@ -5743,20 +5912,26 @@ process.chdir = function (dir) {
      *
      * @param {Function} onSuccess A callback to be called when the operation
      *  was successful.
-     * @param {Object} [options] An object defining specific query options
+     * @param {Object} [options] An object defining specific options
      * @param {Object} [options.index=null] An IDBIndex to operate on
      * @param {String} [options.order=ASC] The order in which to provide the
      *  results, can be 'DESC' or 'ASC'
      * @param {Boolean} [options.filterDuplicates=false] Whether to exclude
      *  duplicate matches
      * @param {Object} [options.keyRange=null] An IDBKeyRange to use
-     * @param {Function} [options.onError=throw] A callback to be called if an error
-     *  occurred during the operation.
+     * @param {Function} [options.onError=throw] A callback to be called
+     *  if an error occurred during the operation.
+     * @param {Number} [options.limit=Infinity] Limit the number of returned
+     *  results to this number
+     * @param {Number} [options.offset=0] Skip the provided number of results
+     *  in the resultset
      * @returns {IDBTransaction} The transaction used for this operation.
      */
     query: function (onSuccess, options) {
       var result = [];
       options = options || {};
+      options.autoContinue = true;
+      options.writeAccess = false;
       options.onEnd = function () {
         onSuccess(result);
       };
@@ -5867,8 +6042,7 @@ process.chdir = function (dir) {
 
   /** helpers **/
 
-  var noop = function () {
-  };
+  // TODO: Check Object.create support to get rid of this
   var empty = {};
   var mixin = function (target, source) {
     var name, s;
