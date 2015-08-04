@@ -42,7 +42,7 @@ class Collection
     , error
 
   _findFetch: (selector, options, success, error) ->
-    if success? then success(processFind(@items, selector, options))
+    if success? then return processFind(@items, selector, options)
 
   upsert: (docs, bases, success, error) ->
     [items, success, error] = utils.regularizeUpsert(docs, bases, success, error)
