@@ -30,19 +30,17 @@ class Collection
     @removes = {}  # Pending removes by _id. No longer in items
 
   find: (selector, options) ->
-    return fetch: (success, error) =>
-      @_findFetch(selector, options, success, error)
+    return @_findFetch(selector, options)
 
   findOne: (selector, options, success, error) ->
     if _.isFunction(options)
       [options, success, error] = [{}, options, success]
 
-    @find(selector, options).fetch (results) ->
-      if success? then success(if results.length>0 then results[0] else null)
-    , error
+    results = @find(selector, options)
+    if !!results then return results[0] else return null
 
   _findFetch: (selector, options, success, error) ->
-    if success? then return processFind(@items, selector, options)
+    return processFind(@items, selector, options)
 
   upsert: (docs, bases, success, error) ->
     [items, success, error] = utils.regularizeUpsert(docs, bases, success, error)

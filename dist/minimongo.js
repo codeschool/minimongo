@@ -1457,13 +1457,7 @@ Collection = (function() {
   }
 
   Collection.prototype.find = function(selector, options) {
-    return {
-      fetch: (function(_this) {
-        return function(success, error) {
-          return _this._findFetch(selector, options, success, error);
-        };
-      })(this)
-    };
+    return this._findFetch(selector, options, success, error);
   };
 
   Collection.prototype.findOne = function(selector, options, success, error) {

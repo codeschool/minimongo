@@ -74,7 +74,7 @@ class Collection
 
   find: (selector, options) ->
     return fetch: (success, error) =>
-      @_findFetch(selector, options, success, error)
+      return '??????????????' #@_findFetch(selector, options, success, error)
 
   findOne: (selector, options, success, error) ->
     if _.isFunction(options)
