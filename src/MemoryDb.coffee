@@ -63,6 +63,20 @@ class Collection
 
     if success then success(docs)
 
+  insert: (docs, bases, success, error) ->
+    [items, success, error] = utils.regularizeUpsert(docs, bases, success, error)
+
+    for item in items
+      # Fill in base if undefined
+      if item.base == undefined
+        item.base = @items[item.doc._id] or null
+
+      # Keep independent copies
+      item = _.cloneDeep(item)
+
+      # Replace/add
+      @items[item.doc._id] = item.doc
+
   remove: (id, success, error) ->
     if _.has(@items, id)
       @removes[id] = @items[id]

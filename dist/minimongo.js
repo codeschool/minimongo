@@ -1207,7 +1207,7 @@ Collection = (function() {
     return {
       fetch: (function(_this) {
         return function(success, error) {
-          return _this._findFetch(selector, options, success, error);
+          return '??????????????';
         };
       })(this)
     };
@@ -1457,25 +1457,24 @@ Collection = (function() {
   }
 
   Collection.prototype.find = function(selector, options) {
-    return this._findFetch(selector, options, success, error);
+    return this._findFetch(selector, options);
   };
 
   Collection.prototype.findOne = function(selector, options, success, error) {
-    var _ref;
+    var results, _ref;
     if (_.isFunction(options)) {
       _ref = [{}, options, success], options = _ref[0], success = _ref[1], error = _ref[2];
     }
-    return this.find(selector, options).fetch(function(results) {
-      if (success != null) {
-        return success(results.length > 0 ? results[0] : null);
-      }
-    }, error);
+    results = this.find(selector, options);
+    if (!!results) {
+      return results[0];
+    } else {
+      return null;
+    }
   };
 
   Collection.prototype._findFetch = function(selector, options, success, error) {
-    if (success != null) {
-      return processFind(this.items, selector, options);
-    }
+    return processFind(this.items, selector, options);
   };
 
   Collection.prototype.upsert = function(docs, bases, success, error) {
@@ -1497,6 +1496,21 @@ Collection = (function() {
     if (success) {
       return success(docs);
     }
+  };
+
+  Collection.prototype.insert = function(docs, bases, success, error) {
+    var item, items, _i, _len, _ref, _results;
+    _ref = utils.regularizeUpsert(docs, bases, success, error), items = _ref[0], success = _ref[1], error = _ref[2];
+    _results = [];
+    for (_i = 0, _len = items.length; _i < _len; _i++) {
+      item = items[_i];
+      if (item.base === void 0) {
+        item.base = this.items[item.doc._id] || null;
+      }
+      item = _.cloneDeep(item);
+      _results.push(this.items[item.doc._id] = item.doc);
+    }
+    return _results;
   };
 
   Collection.prototype.remove = function(id, success, error) {
@@ -3034,33 +3048,7 @@ exports.autoselectLocalDb = function(options, success, error) {
   LocalStorageDb = require('./LocalStorageDb');
   MemoryDb = require('./MemoryDb');
   browser = bowser.browser;
-  if (!isLocalStorageSupported()) {
-    return new MemoryDb(options, success);
-  }
-  if (window.cordova) {
-    console.log("Selecting WebSQLDb for Cordova");
-    return new WebSQLDb(options, success, error);
-  }
-  if (browser.android || browser.ios || browser.chrome || browser.safari || browser.opera || browser.blackberry) {
-    console.log("Selecting WebSQLDb for browser");
-    return new WebSQLDb(options, success, (function(_this) {
-      return function(err) {
-        console.log("Failed to create WebSQLDb: " + (err ? err.message : void 0));
-        return new MemoryDb(options, success);
-      };
-    })(this));
-  }
-  if (browser.firefox && browser.version >= 16) {
-    console.log("Selecting IndexedDb for browser");
-    return new IndexedDb(options, success, (function(_this) {
-      return function(err) {
-        console.log("Failed to create IndexedDb: " + (err ? err.message : void 0));
-        return new MemoryDb(options, success);
-      };
-    })(this));
-  }
-  console.log("Selecting LocalStorageDb for fallback");
-  return new LocalStorageDb(options, success, error);
+  return new MemoryDb(options, success);
 };
 
 exports.migrateLocalDb = function(fromDb, toDb, success, error) {
