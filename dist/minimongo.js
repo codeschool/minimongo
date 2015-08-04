@@ -1480,7 +1480,7 @@ Collection = (function() {
 
   Collection.prototype._findFetch = function(selector, options, success, error) {
     if (success != null) {
-      return success(processFind(this.items, selector, options));
+      return processFind(this.items, selector, options);
     }
   };
 
