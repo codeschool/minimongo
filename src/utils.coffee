@@ -90,8 +90,8 @@ exports.processFind = (items, selector, options) ->
   if options and options.skip
     filtered = _.rest filtered, options.skip
 
-  if options and options.limit
-    filtered = _.first filtered, options.limit
+  # if options and options.limit
+  #   filtered = _.first filtered, options.limit
 
   # Clone to prevent accidental updates, or apply fields if present
   if options #and options.fields
@@ -100,6 +100,9 @@ exports.processFind = (items, selector, options) ->
     filtered = _.map filtered, (doc) -> _.cloneDeep(doc)
 
   me = filtered
+
+  filtered['skip'] = (amount) ->
+    filtered = _.rest me, amount 
 
   filtered['limit'] = (max) ->
     filtered = _.first me, max 
