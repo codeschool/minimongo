@@ -3,6 +3,7 @@ _ = require 'lodash'
 async = require 'async'
 bowser = require 'bowser'
 SortedObjectArray = require 'sorted-object-array'
+chai = require('chai')
 
 compileDocumentSelector = require('./selector').compileDocumentSelector
 compileSort = require('./selector').compileSort
@@ -100,22 +101,33 @@ exports.processFind = (items, selector, options) ->
     filtered = _.map filtered, (doc) -> _.cloneDeep(doc)
 
   me = filtered
-
+  #need to readd the methods here becaues they are getting lost #addMethods
   filtered['skip'] = (amount) ->
-    filtered = _.rest me, amount 
+    return addMethods(_.rest me, amount)
 
   filtered['limit'] = (max) ->
-    filtered = _.first me, max 
+    return addMethods(_.first me, max)
 
   filtered['sort'] = (options) ->
     direction = options[Object.keys(options)[0]]
     sorted = new SortedObjectArray(Object.keys(options)[0], me)['array'][0]
     if direction >= 0
-      return sorted 
+      return sorted
     else
       return sorted.reverse()
 
   return filtered
+
+addMethods = (filtered) ->
+  me = filtered
+
+  me['skip'] = (amount) ->
+    return _.rest me, amount
+
+  me['limit'] = (max) ->
+    return _.first me, max
+
+  return me
 
 exports.filterFields = (items, fields={}) ->
   # Handle trivial case

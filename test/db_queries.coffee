@@ -176,11 +176,16 @@ module.exports = ->
       assert.deepEqual _.pluck(results, '_id'), ["2", "3"]
       done()
 
-    # it 'skips with chained limit', (done) ->
-    #   results = @col.find({}).sort({'a': 1}).skip(1).limit(1)
-    #   assert.deepEqual _.pluck(results, '_id'), ["2", "3"]
-    #   done()
+    it 'skips with chained limit', (done) ->
+      results = @col.find({}).sort({'a': 1}).skip(1).limit(1)
+      assert.deepEqual _.pluck(results, '_id'), ["2"]
+      done()
 
+#     it 'skips with chained limit reversed', (done) ->
+#       results = @col.find({}).sort({'a': 1}).limit(1).skip(1)
+#       assert.deepEqual _.pluck(results, '_id'), ["2"]
+#       done()
+#
     it 'fetches independent copies', (done) ->
       result1 = @col.findOne { _id: "2" }
       result2 = @col.findOne { _id: "2" }
