@@ -84,8 +84,8 @@ exports.processFind = (items, selector, options) ->
   filtered = processNearOperator(selector, filtered)
   filtered = processGeoIntersectsOperator(selector, filtered)
 
-  if options and options.sort
-    filtered.sort(compileSort(options.sort))
+  # if options and options.sort
+  #   filtered.sort(compileSort(options.sort))
 
   if options and options.skip
     filtered = _.rest filtered, options.skip
@@ -100,6 +100,10 @@ exports.processFind = (items, selector, options) ->
     filtered = _.map filtered, (doc) -> _.cloneDeep(doc)
 
   me = filtered
+
+  filtered['limit'] = (max) ->
+    filtered = _.first me, max 
+
   filtered['sort'] = (options) ->
     direction = options[Object.keys(options)[0]]
     sorted = new SortedObjectArray(Object.keys(options)[0], me)['array'][0]

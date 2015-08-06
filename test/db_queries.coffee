@@ -157,22 +157,22 @@ module.exports = ->
       done()
 
     it 'sorts ascending', (done) ->
-      results = @col.find({}, {sort: ['a']})
-      assert.deepEqual _.pluck(results, '_id'), ["1","3","2"]
+      results = @col.find({}).sort({'_id': 1})
+      assert.deepEqual _.pluck(results, '_id'), ["1","2","3"]
       done()
 
     it 'sorts descending', (done) ->
-      results = @col.find({}, {sort: [['a','desc']]})
-      assert.deepEqual _.pluck(results, '_id'), ["2","3","1"]
+      results = @col.find({}).sort({'_id': -1})
+      assert.deepEqual _.pluck(results, '_id'), ["3","2","1"]
       done()
 
     it 'limits', (done) ->
-      results = @col.find({}, {sort: ['a'], limit:2})
-      assert.deepEqual _.pluck(results, '_id'), ["1","3"]
+      results = @col.find({}).sort({a: 1}).limit(2)
+      assert.deepEqual _.pluck(results, '_id'), ["1","2"]
       done()
 
     it 'skips', (done) ->
-      results = @col.find({}, {sort: ['a'], skip:2})
+      results = @col.find({}, {skip:2}).sort({'a': 1})
       assert.deepEqual _.pluck(results, '_id'), ["2"]
       done()
 
@@ -238,7 +238,7 @@ module.exports = ->
         done()
 
     it 'finds sorts in Javascript order', (done) ->
-      results = @col.find({}, {sort: ['a']})
+      results = @col.find({}).sort({'a': -1})
       assert.deepEqual _.pluck(results, '_id'), ["2","1"]
       done()
 
@@ -360,7 +360,7 @@ module.exports = ->
             coordinates: [[
               [0, -89], [0, 89], [179, 89], [179, -89], [0, -89]
             ]]
-      results = @col.find(selector, {sort:['_id']})
+      results = @col.find(selector).sort({'_id': 1})
       assert.deepEqual _.pluck(results, '_id'), ["1", "2", "3", "4"]
       done()
 
