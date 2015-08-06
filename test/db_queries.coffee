@@ -1,6 +1,7 @@
 _ = require 'lodash'
 chai = require 'chai'
 assert = chai.assert
+expect = chai.expect
 
 error = (err) ->
   console.log err
@@ -22,10 +23,10 @@ module.exports = ->
   context 'With sample rows', ->
     beforeEach (done) ->
       @reset =>
-        @col.upsert { _id:"1", a:"Alice", b:1, c: { d: 1, e: 2 } }, =>
-          @col.upsert { _id:"2", a:"Charlie", b:2, c: { d: 2, e: 3 } }, =>
-            @col.upsert { _id:"3", a:"Bob", b:3 }, ->
-              done()
+        @col.upsert { _id:"1", a:"Alice", b:1, c: { d: 1, e: 2 } }
+        @col.upsert { _id:"2", a:"Charlie", b:2, c: { d: 2, e: 3 } }
+        @col.upsert { _id:"3", a:"Bob", b:3 }
+        done()
 
     it 'finds all rows', (done) ->
       results = @col.find({}) 
@@ -216,9 +217,9 @@ module.exports = ->
   context 'With sample with capitalization', ->
     beforeEach (done) ->
       @reset =>
-        @col.upsert { _id:"1", a:"Alice", b:1, c: { d: 1, e: 2 } }, =>
-          @col.upsert { _id:"2", a:"AZ", b:2, c: { d: 2, e: 3 } }, ->
-            done()
+        @col.upsert { _id:"1", a:"Alice", b:1, c: { d: 1, e: 2 } }
+        @col.upsert { _id:"2", a:"AZ", b:2, c: { d: 2, e: 3 } }
+        done()
 
     it 'finds sorts in Javascript order', (done) ->
       results = @col.find({}, {sort: ['a']})
@@ -228,10 +229,10 @@ module.exports = ->
   context 'With integer array in json rows', ->
     beforeEach (done) ->
       @reset =>
-        @col.upsert { _id:"1", c: { arrint: [1, 2] }}, =>
-          @col.upsert { _id:"2", c: { arrint: [2, 3] }}, =>
-            @col.upsert { _id:"3", c: { arrint: [1, 3] }}, ->
-              done()
+        @col.upsert { _id:"1", c: { arrint: [1, 2] }}
+        @col.upsert { _id:"2", c: { arrint: [2, 3] }}
+        @col.upsert { _id:"3", c: { arrint: [1, 3] }}
+        done()
 
     it 'filters by $in', (done) ->
       @testFilter { "c.arrint": { $in: [3] }}, ["2", "3"], done
@@ -242,10 +243,10 @@ module.exports = ->
   context 'With object array rows', ->
     beforeEach (done) ->
       @reset =>
-        @col.upsert { _id:"1", c: [{ x: 1, y: 1 }, { x:1, y:2 }] }, =>
-          @col.upsert { _id:"2", c: [{ x: 2, y: 1 }] }, =>
-            @col.upsert { _id:"3", c: [{ x: 2, y: 2 }] }, ->
-              done()
+        @col.upsert { _id:"1", c: [{ x: 1, y: 1 }, { x:1, y:2 }] }
+        @col.upsert { _id:"2", c: [{ x: 2, y: 1 }] }
+        @col.upsert { _id:"3", c: [{ x: 2, y: 2 }] }
+        done()
 
     it 'filters by $elemMatch', (done) ->
       @testFilter { "c": { $elemMatch: { y:1 }}}, ["1", "2"], =>
@@ -254,10 +255,10 @@ module.exports = ->
   context 'With array rows with inner string arrays', ->
     beforeEach (done) ->
       @reset =>
-        @col.upsert { _id:"1", c: [{ arrstr: ["a", "b"]}, { arrstr: ["b", "c"]}] }, =>
-          @col.upsert { _id:"2", c: [{ arrstr: ["b"]}] }, =>
-            @col.upsert { _id:"3", c: [{ arrstr: ["c", "d"]}, { arrstr: ["e", "f"]}] }, ->
-              done()
+        @col.upsert { _id:"1", c: [{ arrstr: ["a", "b"]}, { arrstr: ["b", "c"]}] }
+        @col.upsert { _id:"2", c: [{ arrstr: ["b"]}] }
+        @col.upsert { _id:"3", c: [{ arrstr: ["c", "d"]}, { arrstr: ["e", "f"]}] }
+        done()
 
     it 'filters by $elemMatch', (done) ->
       @testFilter { "c": { $elemMatch: { "arrstr": { $in: ["b"]} }}}, ["1", "2"], =>
@@ -266,13 +267,10 @@ module.exports = ->
   context 'With text array rows', ->
     beforeEach (done) ->
       @reset =>
-        @col.upsert { _id:"1", textarr: ["a", "b"]}, =>
-          @col.upsert { _id:"2", textarr: ["b", "c"]}, =>
-            @col.upsert { _id:"3", textarr: ["c", "d"]}, ->
-              done()
-            , error
-          , error
-        , error
+        @col.upsert { _id:"1", textarr: ["a", "b"]}
+        @col.upsert { _id:"2", textarr: ["b", "c"]}
+        @col.upsert { _id:"3", textarr: ["c", "d"]}
+        done()
 
     it 'filters by $in', (done) ->
       @testFilter { "textarr": { $in: ["b"] }}, ["1", "2"], done
@@ -363,11 +361,45 @@ module.exports = ->
         assert.deepEqual _.pluck(results, '_id'), ["2"]
         done()
 
+  context 'With insert and update', ->
+    beforeEach (done) ->
+      @col.items = {}
+      done()
+
+    afterEach (done) ->
+      @col.items = {}
+      done()
     #insert
 
     it 'inserts new row', (done) ->
       item = @col.insert { a: "xxx" }
       results = @col.find({a: 'xxx'})
       assert results[0].a == 'xxx'
+      done()
+
+    it 'throws duplicate id error', (done) ->
+      item = @col.insert { _id: '123', a: "xxx" }
+      expect(() =>
+        @col.insert { _id: '123', a: "hello" }).to.throw 'Duplicate ID'
+      done()
+
+
+    #update
+  
+    it 'updates correct record', (done) ->
+      item = @col.insert { a: "xxx", b: 'test' }
+      results = @col.find({b: 'test'})
+      assert results[0].a == 'xxx'
+      item = @col.update {b: 'test'}, { a: "123", b: 'test' }
+      results = @col.find({b: 'test'})
+      assert.equal results[0].a, '123'
+      done()
+
+    it 'doesnt add record on update', (done) ->
+      item = @col.insert { a: "xxx", b: 'test' }
+      results = @col.find({b: 'test'})
+      assert results.length == 1
+      item = @col.update {b: 'test'}, { a: "123", b: 'test' }
+      assert results.length == 1
       done()
 

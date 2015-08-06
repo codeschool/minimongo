@@ -61,6 +61,7 @@ class Collection
       @items[item.doc._id] = item.doc
       @upserts[item.doc._id] = item
 
+    # dont remove right now!
     if success then success(docs)
 
   insert: (docs, bases, success, error) ->
@@ -73,9 +74,23 @@ class Collection
 
       # Keep independent copies
       item = _.cloneDeep(item)
+      if !@items[item.doc._id]
+        @items[item.doc._id] = item.doc
+      else
+        throw 'Duplicate ID'
 
-      # Replace/add
-      @items[item.doc._id] = item.doc
+  update: (selector, docs, bases, success, error) ->
+    theItems = processFind(@items, selector)
+
+    for item in theItems
+      if item.docs == undefined
+        item.doc = docs
+      if item.base == undefined
+        item.base = @items[item.doc._id] or null
+      item = _.cloneDeep(item)
+      for k,v of docs
+        @items[item._id][k] = docs[k]
+
 
   remove: (id, success, error) ->
     if _.has(@items, id)

@@ -1513,6 +1513,21 @@ Collection = (function() {
     return _results;
   };
 
+  Collection.prototype.update = function(selector, docs, bases, success, error) {
+    var item, theItems, _i, _len, _results;
+    theItems = processFind(selector, docs, bases);
+    _results = [];
+    for (_i = 0, _len = theItems.length; _i < _len; _i++) {
+      item = theItems[_i];
+      if (item.base === void 0) {
+        item.base = this.items[item.doc._id] || null;
+      }
+      item = _.cloneDeep(item);
+      _results.push(this.items[item.doc._id] = docs);
+    }
+    return _results;
+  };
+
   Collection.prototype.remove = function(id, success, error) {
     if (_.has(this.items, id)) {
       this.removes[id] = this.items[id];
