@@ -46,6 +46,7 @@
     "bowser": "^0.7.1",
     "idb-wrapper": "^1.4.1",
     "jquery": "~2.1.0",
-    "lodash": "~2.4.1"
+    "lodash": "~2.4.1",
+    "sorted-object-array": "1.0.0"
   }
 }

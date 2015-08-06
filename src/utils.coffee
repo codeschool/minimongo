@@ -2,6 +2,7 @@
 _ = require 'lodash'
 async = require 'async'
 bowser = require 'bowser'
+SortedObjectArray = require 'sorted-object-array'
 
 compileDocumentSelector = require('./selector').compileDocumentSelector
 compileSort = require('./selector').compileSort
@@ -93,10 +94,19 @@ exports.processFind = (items, selector, options) ->
     filtered = _.first filtered, options.limit
 
   # Clone to prevent accidental updates, or apply fields if present
-  if options and options.fields
-    filtered = exports.filterFields(filtered, options.fields)
+  if options #and options.fields
+    filtered = exports.filterFields(filtered, options)
   else
     filtered = _.map filtered, (doc) -> _.cloneDeep(doc)
+
+  me = filtered
+  filtered['sort'] = (options) ->
+    direction = options[Object.keys(options)[0]]
+    sorted = new SortedObjectArray(Object.keys(options)[0], me)['array'][0]
+    if direction >= 0
+      return sorted 
+    else
+      return sorted.reverse()
 
   return filtered
 

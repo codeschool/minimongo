@@ -96,28 +96,44 @@ module.exports = ->
       @testFilter { c: { $exists: false }}, ["3"], done
 
     it 'includes fields', (done) ->
-      results = @col.find({ _id: "1" }, { fields: { a:1 }})
+      results = @col.find({ _id: "1" }, {a: 1})
       assert.deepEqual results[0], { _id: "1",  a: "Alice" }
       done()
 
+    it 'sorts by proper method asc', (done) ->
+      results = @col.find().sort({a: 1})
+      assert.deepEqual results[0], { _id: "1",  a: "Alice", b: 1, c: { d: 1, e: 2 } }
+      done()
+
+    it 'sorts by proper method asc with no values', (done) ->
+      results = @col.find().sort({a: 1})
+      assert.deepEqual results[0], { _id: "1",  a: "Alice", b: 1, c: { d: 1, e: 2 } }
+      done()
+
+    it 'sorts by proper method desc', (done) ->
+      results = @col.find().sort({a: -1})
+      assert.deepEqual results[0], { _id:"3", a:"Bob", b:3 } 
+      done()
+
+
     it 'includes subfields', (done) ->
-      results = @col.find({ _id: "1" }, { fields: { "c.d":1 }})
+      results = @col.find({ _id: "1" }, { "c.d":1 })
       assert.deepEqual results[0], { _id: "1",  c: { d: 1 } }
       done()
 
     it 'ignores non-existent subfields', (done) ->
-      results = @col.find({ _id: "1" }, { fields: { "x.y":1 }})
+      results = @col.find({ _id: "1" }, { "x.y":1 })
       assert.deepEqual results[0], { _id: "1" }
       done()
 
     it 'excludes fields', (done) ->
-      results = @col.find({ _id: "1" }, { fields: { a:0 }})
+      results = @col.find({ _id: "1" }, {a: 0})
       assert.isUndefined results[0].a
       assert.equal results[0].b, 1
       done()
 
     it 'excludes subfields', (done) ->
-      results = @col.find({ _id: "1" }, { fields: { "c.d": 0 }})
+      results = @col.find({ _id: "1" }, {"c.d": 0})
       assert.deepEqual results[0].c, { e: 2 }
       done()
 

@@ -1508,22 +1508,37 @@ Collection = (function() {
         item.base = this.items[item.doc._id] || null;
       }
       item = _.cloneDeep(item);
-      _results.push(this.items[item.doc._id] = item.doc);
+      if (!this.items[item.doc._id]) {
+        _results.push(this.items[item.doc._id] = item.doc);
+      } else {
+        throw 'Duplicate ID';
+      }
     }
     return _results;
   };
 
   Collection.prototype.update = function(selector, docs, bases, success, error) {
-    var item, theItems, _i, _len, _results;
-    theItems = processFind(selector, docs, bases);
+    var item, k, theItems, v, _i, _len, _results;
+    theItems = processFind(this.items, selector);
     _results = [];
     for (_i = 0, _len = theItems.length; _i < _len; _i++) {
       item = theItems[_i];
+      if (item.docs === void 0) {
+        item.doc = docs;
+      }
       if (item.base === void 0) {
         item.base = this.items[item.doc._id] || null;
       }
       item = _.cloneDeep(item);
-      _results.push(this.items[item.doc._id] = docs);
+      _results.push((function() {
+        var _results1;
+        _results1 = [];
+        for (k in docs) {
+          v = docs[k];
+          _results1.push(this.items[item._id][k] = docs[k]);
+        }
+        return _results1;
+      }).call(this));
     }
     return _results;
   };
@@ -3027,13 +3042,15 @@ exports.compileDocumentSelector = compileDocumentSelector;
 exports.compileSort = LocalCollection._compileSort;
 
 },{"./EJSON":5,"lodash":"nJZoxB"}],14:[function(require,module,exports){
-var async, bowser, compileDocumentSelector, compileSort, deg2rad, getDistanceFromLatLngInM, isLocalStorageSupported, pointInPolygon, processGeoIntersectsOperator, processNearOperator, _;
+var SortedObjectArray, async, bowser, compileDocumentSelector, compileSort, deg2rad, getDistanceFromLatLngInM, isLocalStorageSupported, pointInPolygon, processGeoIntersectsOperator, processNearOperator, _;
 
 _ = require('lodash');
 
 async = require('async');
 
 bowser = require('bowser');
+
+SortedObjectArray = require('sorted-object-array');
 
 compileDocumentSelector = require('./selector').compileDocumentSelector;
 
@@ -3081,7 +3098,7 @@ exports.migrateLocalDb = function(fromDb, toDb, success, error) {
 };
 
 exports.processFind = function(items, selector, options) {
-  var filtered;
+  var filtered, me;
   filtered = _.filter(_.values(items), compileDocumentSelector(selector));
   filtered = processNearOperator(selector, filtered);
   filtered = processGeoIntersectsOperator(selector, filtered);
@@ -3094,13 +3111,24 @@ exports.processFind = function(items, selector, options) {
   if (options && options.limit) {
     filtered = _.first(filtered, options.limit);
   }
-  if (options && options.fields) {
-    filtered = exports.filterFields(filtered, options.fields);
+  if (options) {
+    filtered = exports.filterFields(filtered, options);
   } else {
     filtered = _.map(filtered, function(doc) {
       return _.cloneDeep(doc);
     });
   }
+  me = filtered;
+  filtered['sort'] = function(options) {
+    var direction, sorted;
+    direction = options[Object.keys(options)[0]];
+    sorted = new SortedObjectArray(Object.keys(options)[0], me)['array'][0];
+    if (direction >= 0) {
+      return sorted;
+    } else {
+      return sorted.reverse();
+    }
+  };
   return filtered;
 };
 
@@ -3301,7 +3329,7 @@ exports.regularizeUpsert = function(docs, bases, success, error) {
   return [items, success, error];
 };
 
-},{"./HybridDb":6,"./IndexedDb":7,"./LocalStorageDb":8,"./MemoryDb":9,"./WebSQLDb":11,"./selector":13,"async":17,"bowser":18,"lodash":"nJZoxB"}],"lodash":[function(require,module,exports){
+},{"./HybridDb":6,"./IndexedDb":7,"./LocalStorageDb":8,"./MemoryDb":9,"./WebSQLDb":11,"./selector":13,"async":17,"bowser":18,"lodash":"nJZoxB","sorted-object-array":21}],"lodash":[function(require,module,exports){
 module.exports=require('nJZoxB');
 },{}],"nJZoxB":[function(require,module,exports){
 module.exports = window._;
@@ -6058,4 +6086,69 @@ process.chdir = function (dir) {
 
 }, this);
 
+},{}],21:[function(require,module,exports){
+if (typeof module === "object") module.exports = SortedObjectArray;
+
+SortedObjectArray.prototype.insert = function (element) {
+    var array = this.array;
+    var index = array.length;
+    array.push(element);
+
+    while (index) {
+        var i = index, j = --index;
+
+        if (this.getKey(i) < this.getKey(j)) {
+            var temp = array[i];
+            array[i] = array[j];
+            array[j] = temp;
+        }
+    }
+
+    return this;
+};
+
+SortedObjectArray.prototype.getKey = function(index) {
+    return this.array[index][this.key];
+};
+
+SortedObjectArray.prototype.search = function (element) {
+    var elementKey = (typeof(element) === 'object')? element[this.key]: element;
+
+    var low = 0;
+    var array = this.array;
+    var high = array.length;
+
+    while (high > low) {
+        var index = (high + low) / 2 >>> 0;
+        var cursor = this.getKey(index);
+
+        if (cursor < elementKey) low = index + 1;
+        else if (cursor > elementKey) high = index;
+        else return index;
+    }
+
+    return -1;
+};
+
+SortedObjectArray.prototype.remove = function (element) {
+    var index = this.search(element);
+    if (index >= 0) this.array.splice(index, 1);
+    return this;
+};
+
+function SortedObjectArray() {
+    var index = 0;
+
+    if (typeof(arguments[0]) != 'object' && arguments[0] != null){
+        this.key = arguments[0];
+        index = 1;
+    } else {
+        this.key = 'id';
+    }
+    
+    this.array = [];
+    var length = arguments.length;
+    
+    while (index < length) this.insert(arguments[index++]);
+}
 },{}]},{},[])
