@@ -3,7 +3,6 @@ _ = require 'lodash'
 async = require 'async'
 bowser = require 'bowser'
 SortedObjectArray = require 'sorted-object-array'
-chai = require('chai')
 
 compileDocumentSelector = require('./selector').compileDocumentSelector
 compileSort = require('./selector').compileSort
@@ -88,8 +87,8 @@ exports.processFind = (items, selector, options) ->
   # if options and options.sort
   #   filtered.sort(compileSort(options.sort))
 
-  if options and options.skip
-    filtered = _.rest filtered, options.skip
+  # if options and options.skip
+  #   filtered = _.rest filtered, options.skip
 
   # if options and options.limit
   #   filtered = _.first filtered, options.limit
@@ -106,7 +105,9 @@ exports.processFind = (items, selector, options) ->
     return addMethods(_.rest me, amount)
 
   filtered['limit'] = (max) ->
-    return addMethods(_.first me, max)
+    obj = addMethods(_.first me, max)
+    obj.preLimit = filtered
+    return obj
 
   filtered['sort'] = (options) ->
     direction = options[Object.keys(options)[0]]
@@ -122,7 +123,14 @@ addMethods = (filtered) ->
   me = filtered
 
   me['skip'] = (amount) ->
-    return _.rest me, amount
+    if me.preLimit
+      data = _.rest me.preLimit, amount
+      data['limit'] = (max) ->
+        return _.first data, max
+      data = data.limit(me.length)
+    else
+      data = _.rest me, amount
+    return data
 
   me['limit'] = (max) ->
     return _.first me, max
