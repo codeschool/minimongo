@@ -389,12 +389,9 @@ module.exports = ->
 
   context 'With insert and update', ->
     beforeEach (done) ->
-      @col.items = {}
-      done()
+      @reset =>
+        done()
 
-    afterEach (done) ->
-      @col.items = {}
-      done()
     #insert
 
     it 'inserts new row', (done) ->
