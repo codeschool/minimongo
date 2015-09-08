@@ -9,7 +9,7 @@ describe.only 'MemoryDb', ->
   before (done) ->
     @reset = (done) =>
       @db = new MemoryDb()
-      @db.addCollection("scratch")
+      @db.createCollection("scratch")
       @col = @db.scratch
       done()
     @reset(done)

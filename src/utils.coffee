@@ -119,6 +119,48 @@ exports.processFind = (items, selector, options) ->
 
   return filtered
 
+exports.processAggregate = (items, selector, options) ->
+  filtered = []
+  if selector['$match']
+    filtered = _.filter(_.values(items), compileDocumentSelector(selector['$match']))
+  if selector['$group']
+    console.log 'test'
+    _items = _.values(items)
+    keys = _.keys(selector['$group'])
+    values  = _.values(selector['$group'])
+    for item in _items
+      h = {}
+      for i in keys
+        debugger
+        h[i] = item[values[0].replace('$', '')]
+        filtered.push h
+
+    # filtered = [h]
+    # operation = _.remove(Object.keys(selector['$group']), (key)->
+    #   key != '_id'
+    # )
+    # keys = Object.keys(selector['$group'])
+    # for i in keys
+    #   h = {}
+    #   filt = _.filter(items, (item)->
+    #     console.log('+++++++++++++')
+    #     console.log item['_id']
+    #     console.log id
+    #     item[i]['_id'] == id
+    #   )
+    #   console.log('GROUP!!!!')
+    #   console.log(i)
+    #   console.log(filt)
+    #   h[i] = filt
+    #   filtered.push(h)
+    #   # operation = selector['$group']['_id'].replace('$', '')
+    #   # filtered = _.groupBy(items, (item) ->
+    #   #   item[i]
+    #   # )
+
+  return filtered
+
+
 addMethods = (filtered) ->
   me = filtered
 

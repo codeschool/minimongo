@@ -169,6 +169,31 @@ var LOGICAL_OPERATORS = {
 };
 
 var VALUE_OPERATORS = {
+
+  "$group": function (operand) {
+    if (!isArray(operand))
+      throw new Error("Argument to $in must be array");
+    return function (value) {
+      return _anyIfArrayPlus(value, function (x) {
+        return _.any(operand, function (operandElt) {
+          return LocalCollection._f._equal(operandElt, x);
+        });
+      });
+    };
+  },
+
+  "$match": function (operand) {
+    if (!isArray(operand))
+      throw new Error("Argument to $in must be array");
+    return function (value) {
+      return _anyIfArrayPlus(value, function (x) {
+        return _.any(operand, function (operandElt) {
+          return LocalCollection._f._equal(operandElt, x);
+        });
+      });
+    };
+  },
+
   "$in": function (operand) {
     if (!isArray(operand))
       throw new Error("Argument to $in must be array");

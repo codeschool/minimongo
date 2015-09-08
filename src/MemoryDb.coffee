@@ -1,6 +1,7 @@
 _ = require 'lodash'
 utils = require('./utils')
 processFind = require('./utils').processFind
+processAggregate = require('./utils').processAggregate
 compileSort = require('./selector').compileSort
 
 module.exports = class MemoryDb
@@ -10,6 +11,12 @@ module.exports = class MemoryDb
     if success then success(this)
 
   addCollection: (name, success, error) ->
+    collection = new Collection(name)
+    @[name] = collection
+    @collections[name] = collection
+    if success? then success()
+
+  createCollection: (name, success, error) ->
     collection = new Collection(name)
     @[name] = collection
     @collections[name] = collection
@@ -90,6 +97,14 @@ class Collection
       item = _.cloneDeep(item)
       for k,v of docs
         @items[item._id][k] = docs[k]
+
+  aggregate: (selectors) ->
+    remaining = []
+    for selector in selectors
+      if remaining.length < 1
+      then remaining = processAggregate(@items, selector)
+      else remaining.push(processAggregate(@items, selector))
+    return remaining
 
 
   remove: (id, success, error) ->

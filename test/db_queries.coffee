@@ -429,3 +429,38 @@ module.exports = ->
       assert results.length == 1
       done()
 
+
+    #aggregates
+    
+    it 'uses $match to limit results', (done) ->
+      item = @col.insert { name: 'jack', status: 'awesome', age: 20 }
+      item = @col.insert { name: 'bob', status: 'ok', age: 2 }
+      results = @col.aggregate([{$match: {age: {$gte: 10}}}])
+      assert.equal results[0].name, 'jack'
+      assert.equal results[1], undefined
+      done()
+
+    it 'uses $match to return all results', (done) ->
+      item = @col.insert { name: 'jack', status: 'awesome', age: 20 }
+      item = @col.insert { name: 'bob', status: 'ok', age: 2 }
+      results = @col.aggregate([{$match: {age: {$gte: 1}}}])
+      assert.equal results[0].name, 'jack'
+      assert.equal results[1].name, 'bob'
+      done()
+
+    it 'uses $group to group together by criteria', (done) ->
+      item = @col.insert { name: 'jack', status: 'awesome', age: 20 }
+      item = @col.insert { name: 'bob', status: 'ok', age: 2 }
+      results = @col.aggregate([{$group: {_id: '$age'}}])
+      assert.equal results[0]['_id'], 20
+      assert.equal results[1]['_id'], 2
+      done()
+
+#     it 'uses $group with $sum accumulator', (done) ->
+#       item = @col.insert { name: 'jack', status: 'awesome', age: 20 }
+#       item = @col.insert { name: 'bob', status: 'ok', age: 2 }
+#       results = @col.aggregate([{$group: {_id: '$_id', total: '$sum': '$age'}}])
+#       assert.equal results[0]['_id'], 20
+#       assert.equal results[1]['_id'], 2
+#       done()
+#
