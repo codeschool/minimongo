@@ -3166,7 +3166,7 @@ exports.processFind = function(items, selector, options) {
   };
   filtered['limit'] = function(max) {
     var obj;
-    obj = addMethods(_.first(me, max));
+    obj = addMethods(me.slice(0, max));
     obj.preLimit = filtered;
     return obj;
   };
@@ -3224,7 +3224,7 @@ addMethods = function(filtered) {
     return data;
   };
   me['limit'] = function(max) {
-    return _.first(me, max);
+    return _.first(me.prelimit, max);
   };
   return me;
 };

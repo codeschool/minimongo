@@ -23,9 +23,9 @@ module.exports = ->
   context 'With sample rows', ->
     beforeEach (done) ->
       @reset =>
-        @col.upsert { _id:"1", a:"Alice", b:1, c: { d: 1, e: 2 } }
-        @col.upsert { _id:"2", a:"Charlie", b:2, c: { d: 2, e: 3 } }
-        @col.upsert { _id:"3", a:"Bob", b:3 }
+        @col.insert { _id:"1", a:"Alice", b:1, c: { d: 1, e: 2 } }
+        @col.insert { _id:"2", a:"Charlie", b:2, c: { d: 2, e: 3 } }
+        @col.insert { _id:"3", a:"Bob", b:3 }
         done()
 
     it 'finds all rows', (done) ->
@@ -167,11 +167,8 @@ module.exports = ->
       done()
 
     it 'limits by self', (done) ->
-      results = @col.find({}).limit(1)
-      console.log results
-      console.log JSON.stringify(results)
-      debugger
-      assert.deepEqual _.pluck(results, '_id'), ["1"]
+      results = @col.find({}).limit(2)
+      assert.deepEqual _.pluck(results, '_id'), ["1", "2"]
       done()
 
     it 'limits with sort', (done) ->

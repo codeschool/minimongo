@@ -105,7 +105,7 @@ exports.processFind = (items, selector, options) ->
     return addMethods(_.rest me, amount)
 
   filtered['limit'] = (max) ->
-    obj = addMethods(_.first me, max)
+    obj = addMethods(me.slice(0, max))
     obj.preLimit = filtered
     return obj
 
@@ -131,7 +131,6 @@ exports.processAggregate = (items, selector, options) ->
     for item in _items
       h = {}
       for i in keys
-        # debugger
         h[i] = item[values[0].replace('$', '')]
         filtered.push h
 
@@ -175,7 +174,7 @@ addMethods = (filtered) ->
     return data
 
   me['limit'] = (max) ->
-    return _.first me, max
+    return _.first me.prelimit, max
 
   return me
 
