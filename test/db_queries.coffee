@@ -166,7 +166,15 @@ module.exports = ->
       assert.deepEqual _.pluck(results, '_id'), ["3","2","1"]
       done()
 
-    it 'limits', (done) ->
+    it 'limits by self', (done) ->
+      results = @col.find({}).limit(1)
+      console.log results
+      console.log JSON.stringify(results)
+      debugger
+      assert.deepEqual _.pluck(results, '_id'), ["1"]
+      done()
+
+    it 'limits with sort', (done) ->
       results = @col.find({}).sort({a: 1}).limit(2)
       assert.deepEqual _.pluck(results, '_id'), ["1","2"]
       done()
@@ -461,3 +469,20 @@ module.exports = ->
 #       assert.equal results[1]['_id'], 2
 #       done()
 #
+  #shell commands
+  context 'With shell commands', ->
+    beforeEach (done) ->
+      @col.items = {}
+      done()
+
+    afterEach (done) ->
+      @col.items = {}
+      done()
+    #insert
+
+    it 'show dbs', (done) ->
+      item = @col.insert { a: "xxx" }
+      results = @col.find({a: 'xxx'})
+      assert results[0].a == 'xxx'
+      done()
+

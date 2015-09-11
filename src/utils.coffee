@@ -131,7 +131,7 @@ exports.processAggregate = (items, selector, options) ->
     for item in _items
       h = {}
       for i in keys
-        debugger
+        # debugger
         h[i] = item[values[0].replace('$', '')]
         filtered.push h
 
