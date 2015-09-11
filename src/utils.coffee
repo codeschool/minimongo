@@ -102,7 +102,13 @@ exports.processFind = (items, selector, options) ->
   me = filtered
   #need to readd the methods here becaues they are getting lost #addMethods
   filtered['skip'] = (amount) ->
-    return addMethods(_.rest me, amount)
+    if me.preLimit
+      me.preLimit.splice 0, amount
+      data = me.preLimit
+    else
+      me.splice 0, amount
+      data = me
+    return addMethods(data)
 
   filtered['limit'] = (max) ->
     obj = addMethods(me.slice(0, max))
@@ -112,12 +118,35 @@ exports.processFind = (items, selector, options) ->
   filtered['sort'] = (options) ->
     direction = options[Object.keys(options)[0]]
     sorted = new SortedObjectArray(Object.keys(options)[0], me)['array'][0]
-    if direction >= 0
-      return sorted
-    else
-      return sorted.reverse()
-
+    if direction < 0
+      sorted = sorted.reverse()
+    return sorted = addMethods(sorted)
   return filtered
+
+addMethods = (filtered) ->
+  me = filtered
+
+  me['skip'] = (amount) ->
+    if me.preLimit
+      me.preLimit.splice 0, amount
+      data = me.preLimit
+    else
+      me.splice 0, amount
+      data = me
+    return addMethods(data)
+
+  me['limit'] = (max) ->
+    return addMethods(_.first filtered, max)
+
+  me['sort'] = (options) ->
+    direction = options[Object.keys(options)[0]]
+    sorted = new SortedObjectArray(Object.keys(options)[0], me)['array'][0]
+    if direction < 0
+      sorted = sorted.reverse()
+    addMethods(sorted)
+
+  return me
+
 
 exports.processAggregate = (items, selector, options) ->
   filtered = []
@@ -134,49 +163,9 @@ exports.processAggregate = (items, selector, options) ->
         h[i] = item[values[0].replace('$', '')]
         filtered.push h
 
-    # filtered = [h]
-    # operation = _.remove(Object.keys(selector['$group']), (key)->
-    #   key != '_id'
-    # )
-    # keys = Object.keys(selector['$group'])
-    # for i in keys
-    #   h = {}
-    #   filt = _.filter(items, (item)->
-    #     console.log('+++++++++++++')
-    #     console.log item['_id']
-    #     console.log id
-    #     item[i]['_id'] == id
-    #   )
-    #   console.log('GROUP!!!!')
-    #   console.log(i)
-    #   console.log(filt)
-    #   h[i] = filt
-    #   filtered.push(h)
-    #   # operation = selector['$group']['_id'].replace('$', '')
-    #   # filtered = _.groupBy(items, (item) ->
-    #   #   item[i]
-    #   # )
-
   return filtered
 
 
-addMethods = (filtered) ->
-  me = filtered
-
-  me['skip'] = (amount) ->
-    if me.preLimit
-      data = _.rest me.preLimit, amount
-      data['limit'] = (max) ->
-        return _.first data, max
-      data = data.limit(me.length)
-    else
-      data = _.rest me, amount
-    return data
-
-  me['limit'] = (max) ->
-    return _.first me.prelimit, max
-
-  return me
 
 exports.filterFields = (items, fields={}) ->
   # Handle trivial case
