@@ -98,13 +98,20 @@ class Collection
       for k,v of docs
         @items[item._id][k] = docs[k]
 
-  aggregate: (selectors) ->
+  aggregate: (selectors...) ->
     remaining = []
-    for selector in selectors
-      if remaining.length < 1
-      then remaining = processAggregate(@items, selector)
-      else remaining.push(processAggregate(@items, selector))
-    return remaining
+    if selectors.length > 1
+      for select in selectors
+        remaining.push select
+      selectors = remaining
+    else
+      selectors = selectors[0]
+    return processAggregate(@items, selectors)
+    # for selector in selectors
+    #   if remaining.length < 1
+    #   then remaining = processAggregate(@items, selector)
+    #   else remaining.push(processAggregate(@items, selector))
+    # return remaining
 
 
   remove: (id, success, error) ->

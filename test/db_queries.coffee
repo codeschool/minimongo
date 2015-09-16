@@ -432,7 +432,11 @@ module.exports = ->
       done()
 
 
+  context 'With aggregates', ->
     #aggregates
+    beforeEach (done) ->
+      @reset =>
+        done()
     
     it 'uses $match to limit results', (done) ->
       item = @col.insert { name: 'jack', status: 'awesome', age: 20 }
@@ -458,14 +462,101 @@ module.exports = ->
       assert.equal results[1]['_id'], 2
       done()
 
-#     it 'uses $group with $sum accumulator', (done) ->
-#       item = @col.insert { name: 'jack', status: 'awesome', age: 20 }
-#       item = @col.insert { name: 'bob', status: 'ok', age: 2 }
-#       results = @col.aggregate([{$group: {_id: '$_id', total: '$sum': '$age'}}])
-#       assert.equal results[0]['_id'], 20
-#       assert.equal results[1]['_id'], 2
-#       done()
-#
+    it 'uses $group with $sum accumulator', (done) ->
+      item = @col.insert { name: 'jack', status: 'awesome', age: 20 }
+      item = @col.insert { name: 'bob', status: 'ok', age: 2 }
+      item = @col.insert { name: 'bob', status: 'ok', age: 12 }
+      results = @col.aggregate([{$group: {_id: '$name', total: {$sum: '$age'}}}])
+      assert.equal results[0]['total'], 20
+      assert.equal results[1]['total'], 14
+      assert.equal results.length, 2
+      done()
+
+    it 'uses $match with $group with $sum accumulator', (done) ->
+      item = @col.insert { name: 'jack', status: 'awesome', age: 20 }
+      item = @col.insert { name: 'bob', status: 'ok', age: 2 }
+      item = @col.insert { name: 'bob', status: 'ok', age: 12 }
+      results = @col.aggregate([{$match: {name: 'bob'}}, {$group: {_id: '$name', total: {$sum: '$age'}}}])
+      assert.equal results[0]['total'], 14
+      done()
+
+    it 'uses $group with $avg accumulator', (done) ->
+      item = @col.insert { name: 'jack', status: 'awesome', age: 20 }
+      item = @col.insert { name: 'bob', status: 'ok', age: 2 }
+      item = @col.insert { name: 'bob', status: 'ok', age: 12 }
+      results = @col.aggregate([{$group: {_id: '$name', total: {$avg: '$age'}}}])
+      assert.equal results[0]['total'], 20
+      assert.equal results[1]['total'], 7
+      done()
+  
+    it 'uses $limit to return only 1', (done) ->
+      item = @col.insert { name: 'jack', status: 'awesome', age: 20 }
+      item = @col.insert { name: 'bob', status: 'ok', age: 2 }
+      item = @col.insert { name: 'bob', status: 'ok', age: 12 }
+      results = @col.aggregate([{$group: {_id: '$name', total: {$avg: '$age'}}}, {$limit: 1}])
+      assert.equal results[0]['total'], 20
+      assert.equal results.length, 1
+      # assert.equal results[1]['total'], 7
+      done()
+
+    it 'uses $limit to return only 2', (done) ->
+      item = @col.insert { name: 'jack', status: 'awesome', age: 20 }
+      item = @col.insert { name: 'bob', status: 'ok', age: 2 }
+      item = @col.insert { name: 'bob', status: 'ok', age: 12 }
+      results = @col.aggregate([{$group: {_id: '$name', total: {$avg: '$age'}}}, {$limit: 2}])
+      assert.equal results.length, 2
+      done()
+
+    it 'uses sorts by name', (done) ->
+      item = @col.insert { name: 'jack', status: 'awesome', age: 20 }
+      item = @col.insert { name: 'bob', status: 'ok', age: 2 }
+      item = @col.insert { name: 'nick', status: 'ok', age: 12 }
+      results = @col.aggregate([{$sort: {'$name': 1}}])
+      assert.equal results[0]['name'], 'bob'
+      assert.equal results[1]['name'], 'jack'
+      assert.equal results[2]['name'], 'nick'
+      done()
+  
+    it 'uses sorts by name reversed', (done) ->
+      item = @col.insert { name: 'jack', status: 'awesome', age: 20 }
+      item = @col.insert { name: 'bob', status: 'ok', age: 2 }
+      item = @col.insert { name: 'nick', status: 'ok', age: 12 }
+      results = @col.aggregate([{$sort: {'$name': -1}}])
+      assert.equal results[2]['name'], 'bob'
+      assert.equal results[1]['name'], 'jack'
+      assert.equal results[0]['name'], 'nick'
+      done()
+  
+    it 'returns correct fields with project', (done) ->
+      item = @col.insert { name: 'jack', status: 'awesome', age: 20 }
+      item = @col.insert { name: 'bob', status: 'ok', age: 2 }
+      item = @col.insert { name: 'nick', status: 'ok', age: 12 }
+      results = @col.aggregate([{$project: {'$name': true}}])
+      assert.equal results[0]['name'], 'jack'
+      assert.equal results[0]['status'], undefined
+      done()
+
+    #([{$match: {a: {"$gt": 12}}}, {$project: {_id: false, b: true}}])
+    it 'returns correct fields with project and group', (done) ->
+      item = @col.insert { name: 'jack', status: 'awesome', age: 20 }
+      item = @col.insert { name: 'bob', status: 'ok', age: 2 }
+      item = @col.insert { name: 'nick', status: 'ok', age: 12 }
+      results = @col.aggregate([$match: {age: {$gt: 5}}, {$project: {_id: false, '$name': true}}])
+      assert.equal results[0]['name'], 'jack'
+      assert.equal results[0]['status'], undefined
+      assert.equal results[0]['_id'], undefined
+      done()
+
+    it 'handles for non array passed in ', (done) ->
+      item = @col.insert { name: 'jack', status: 'awesome', age: 20 }
+      item = @col.insert { name: 'bob', status: 'ok', age: 2 }
+      item = @col.insert { name: 'nick', status: 'ok', age: 12 }
+      results = @col.aggregate($match: {age: {$gt: 5}}, {$project: {_id: false, '$name': true}})
+      assert.equal results[0]['name'], 'jack'
+      assert.equal results[0]['status'], undefined
+      assert.equal results[0]['_id'], undefined
+      done()
+
   #shell commands
   context 'With shell commands', ->
     beforeEach (done) ->

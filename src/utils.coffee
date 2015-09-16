@@ -147,22 +147,110 @@ addMethods = (filtered) ->
 
   return me
 
+exports.convertToObject = (selectors) ->
+  obj = {}
+  for select in selectors
+    key = Object.keys(select)[0]
+    obj[key] = select[key]
+  obj
+
+exports.aggregateGroup = (filtered, items, selector, options) ->
+  temp_filtered = []
+  _items = filtered
+  keys = _.keys(selector['$group'])
+  values  = _.values(selector['$group'])
+  _id = null
+  for item in _items
+    h = {}
+    counter = 0
+    for i in keys
+      if typeof values[counter] == 'string'
+        if i == '_id'
+          _id = values[counter].replace('$', '')
+        h[i] = item[values[counter].replace('$', '')]
+        taken = false
+        for _filter in temp_filtered
+          if _.include(_.values(_filter), h._id)
+            taken = true
+        if !taken
+          temp_filtered.push h
+      else
+        operation = Object.keys(values[counter])[0]
+        if operation == '$sum'
+          exports.aggregateAdd(values, temp_filtered, _items, counter, _id, i)
+        else if operation == '$avg'
+          exports.aggregateAvg(values, temp_filtered, _items, counter, _id, i)
+      counter += 1
+  filtered = temp_filtered
+
+exports.aggregateAdd = (values, temp_filtered, _items, counter, _id, i) ->
+  # sum operation done here - need to make this dynamic
+  opt_keys = Object.keys(values[counter])
+  sum_key = values[counter][opt_keys]
+  for filt in temp_filtered
+    sum = 0
+    for it in _items
+      if it[_id] == filt['_id']
+        sum += it[sum_key.replace('$', '')]
+    filt[i] = sum
+
+exports.aggregateAvg = (values, temp_filtered, _items, counter, _id, i) ->
+  opt_keys = Object.keys(values[counter])
+  sum_key = values[counter][opt_keys]
+  for filt in temp_filtered
+    sum = 0
+    length = 0
+    for it in _items
+      if it[_id] == filt['_id']
+        sum += it[sum_key.replace('$', '')]
+        length += 1
+    filt[i] = sum / length
+  temp_filtered
+
+exports.aggregateSort = (selector, filtered) ->
+  direction = selector['$sort'][Object.keys(selector['$sort'])[0]]
+  key = Object.keys(selector['$sort'])[0].replace('$', '')
+  compare = (a, b) ->
+    if a[key] < b[key]
+      return -1
+    if a[key] > b[key]
+      return 1
+    return 0
+  filtered = filtered.sort(compare)
+  if direction < 0
+    filtered = filtered.reverse()
+  filtered
+
+exports.aggregateProject = (selector, filtered) ->
+  keys = Object.keys(selector['$project'])
+  keep = []
+  for k in keys
+    if selector['$project'][k]
+      keep.push k
+  _temp_filtered = []
+  for filt in filtered
+    for key in keep
+      if filt[key.replace('$', '')]
+        filt = _.pick(filt, key.replace('$', ''))
+    _temp_filtered.push filt
+  filtered = _temp_filtered
+
 
 exports.processAggregate = (items, selector, options) ->
-  filtered = []
-  if selector['$match']
-    filtered = _.filter(_.values(items), compileDocumentSelector(selector['$match']))
-  if selector['$group']
-    console.log 'test'
-    _items = _.values(items)
-    keys = _.keys(selector['$group'])
-    values  = _.values(selector['$group'])
-    for item in _items
-      h = {}
-      for i in keys
-        h[i] = item[values[0].replace('$', '')]
-        filtered.push h
+  filtered = _.values(items)
 
+  selector = exports.convertToObject(selector)
+  
+  if selector['$match']
+    filtered = _.filter(filtered, compileDocumentSelector(selector['$match']))
+  if selector['$group']
+    filtered = exports.aggregateGroup(filtered, items, selector, options)
+  if selector['$limit']
+    filtered = filtered.slice(0, selector['$limit'])
+  if selector['$sort']
+    filtered = exports.aggregateSort(selector, filtered)
+  if selector['$project']
+    filtered = exports.aggregateProject(selector, filtered) 
   return filtered
 
 
