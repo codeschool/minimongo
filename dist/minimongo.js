@@ -1531,8 +1531,12 @@ Collection = (function() {
   };
 
   Collection.prototype.update = function(selector, docs, bases, success, error) {
-    var item, k, theItems, v, _i, _len, _results;
+    var id, item, k, theItems, v, _i, _len, _results;
     theItems = processFind(this.items, selector);
+    if (bases && bases['upsert'] && theItems.length < 1) {
+      this.insert(docs);
+      this.upserts[docs._id] = docs;
+    }
     _results = [];
     for (_i = 0, _len = theItems.length; _i < _len; _i++) {
       item = theItems[_i];
@@ -1555,15 +1559,12 @@ Collection = (function() {
           return _results1;
         }).call(this));
       } else {
-        _results.push((function() {
-          var _results1;
-          _results1 = [];
-          for (k in docs) {
-            v = docs[k];
-            _results1.push(this.items[item._id][k] = docs[k]);
-          }
-          return _results1;
-        }).call(this));
+        for (k in docs) {
+          v = docs[k];
+          id = this.items[item._id]._id;
+          this.items[item._id] = docs;
+        }
+        _results.push(this.items[item._id]._id = id);
       }
     }
     return _results;

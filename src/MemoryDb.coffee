@@ -90,6 +90,7 @@ class Collection
     theItems = processFind(@items, selector)
     if bases && bases['upsert'] && theItems.length < 1
       this.insert(docs)
+      @upserts[docs._id] = docs
 
     for item in theItems
       if item.docs == undefined
