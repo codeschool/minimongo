@@ -251,6 +251,8 @@ exports.processAggregate = (items, selector, options) ->
     filtered = exports.aggregateSort(selector, filtered)
   if selector['$project']
     filtered = exports.aggregateProject(selector, filtered) 
+  if selector['$skip']
+    filtered.splice(0, selector['$skip'])
   return filtered
 
 

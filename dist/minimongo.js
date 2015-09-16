@@ -1408,7 +1408,8 @@ Collection = (function() {
 })();
 
 },{"./selector":13,"./utils":14,"lodash":"nJZoxB"}],9:[function(require,module,exports){
-var Collection, MemoryDb, compileSort, processAggregate, processFind, utils, _;
+var Collection, MemoryDb, compileSort, processAggregate, processFind, utils, _,
+  __slice = [].slice;
 
 _ = require('lodash');
 
@@ -1542,22 +1543,45 @@ Collection = (function() {
         item.base = this.items[item.doc._id] || null;
       }
       item = _.cloneDeep(item);
-      _results.push((function() {
-        var _results1;
-        _results1 = [];
-        for (k in docs) {
-          v = docs[k];
-          _results1.push(this.items[item._id][k] = docs[k]);
-        }
-        return _results1;
-      }).call(this));
+      if (_.include(Object.keys(docs), "$set")) {
+        _results.push((function() {
+          var _ref, _results1;
+          _ref = docs['$set'];
+          _results1 = [];
+          for (k in _ref) {
+            v = _ref[k];
+            _results1.push(this.items[item._id][k] = v);
+          }
+          return _results1;
+        }).call(this));
+      } else {
+        _results.push((function() {
+          var _results1;
+          _results1 = [];
+          for (k in docs) {
+            v = docs[k];
+            _results1.push(this.items[item._id][k] = docs[k]);
+          }
+          return _results1;
+        }).call(this));
+      }
     }
     return _results;
   };
 
-  Collection.prototype.aggregate = function(selectors) {
-    var remaining;
+  Collection.prototype.aggregate = function() {
+    var remaining, select, selectors, _i, _len;
+    selectors = 1 <= arguments.length ? __slice.call(arguments, 0) : [];
     remaining = [];
+    if (selectors.length > 1) {
+      for (_i = 0, _len = selectors.length; _i < _len; _i++) {
+        select = selectors[_i];
+        remaining.push(select);
+      }
+      selectors = remaining;
+    } else {
+      selectors = selectors[0];
+    }
     return processAggregate(this.items, selectors);
   };
 
@@ -3323,8 +3347,32 @@ exports.aggregateSort = function(selector, filtered) {
   return filtered;
 };
 
+exports.aggregateProject = function(selector, filtered) {
+  var filt, k, keep, key, keys, _i, _j, _k, _len, _len1, _len2, _temp_filtered;
+  keys = Object.keys(selector['$project']);
+  keep = [];
+  for (_i = 0, _len = keys.length; _i < _len; _i++) {
+    k = keys[_i];
+    if (selector['$project'][k]) {
+      keep.push(k);
+    }
+  }
+  _temp_filtered = [];
+  for (_j = 0, _len1 = filtered.length; _j < _len1; _j++) {
+    filt = filtered[_j];
+    for (_k = 0, _len2 = keep.length; _k < _len2; _k++) {
+      key = keep[_k];
+      if (filt[key.replace('$', '')]) {
+        filt = _.pick(filt, key.replace('$', ''));
+      }
+    }
+    _temp_filtered.push(filt);
+  }
+  return filtered = _temp_filtered;
+};
+
 exports.processAggregate = function(items, selector, options) {
-  var filt, filtered, k, keep, key, keys, _i, _j, _k, _len, _len1, _len2, _temp_filtered;
+  var filtered;
   filtered = _.values(items);
   selector = exports.convertToObject(selector);
   if (selector['$match']) {
@@ -3340,26 +3388,10 @@ exports.processAggregate = function(items, selector, options) {
     filtered = exports.aggregateSort(selector, filtered);
   }
   if (selector['$project']) {
-    keys = Object.keys(selector['$project']);
-    keep = [];
-    for (_i = 0, _len = keys.length; _i < _len; _i++) {
-      k = keys[_i];
-      if (selector['$project'][k]) {
-        keep.push(k);
-      }
-    }
-    _temp_filtered = [];
-    for (_j = 0, _len1 = filtered.length; _j < _len1; _j++) {
-      filt = filtered[_j];
-      for (_k = 0, _len2 = keep.length; _k < _len2; _k++) {
-        key = keep[_k];
-        if (filt[key.replace('$', '')]) {
-          filt = _.pick(filt, key.replace('$', ''));
-        }
-      }
-      _temp_filtered.push(filt);
-    }
-    filtered = _temp_filtered;
+    filtered = exports.aggregateProject(selector, filtered);
+  }
+  if (selector['$skip']) {
+    filtered.splice(0, selector['$skip']);
   }
   return filtered;
 };

@@ -423,14 +423,47 @@ module.exports = ->
       assert.equal results[0].a, '123'
       done()
 
-    it 'doesnt add record on update', (done) ->
+    it 'updates using set', (done) ->
       item = @col.insert { a: "xxx", b: 'test' }
       results = @col.find({b: 'test'})
-      assert results.length == 1
-      item = @col.update {b: 'test'}, { a: "123", b: 'test' }
+      assert results[0].a == 'xxx'
+      item = @col.update {b: 'test'}, { $set: {a: "123" }}
+      results = @col.find({b: 'test'})
+      assert.equal results[0].a, '123'
+      done()
+
+    it 'replaces document when doc is second arg', (done) ->
+      item = @col.insert { a: "xxx", b: 'test' }
+      results = @col.find({b: 'test'})
+      assert.equal results[0].a, 'xxx'
+      item = @col.update {b: 'test'}, { a: "123" }
+      results = @col.find({a: "123"})
+      assert.equal results[0].a, 123
+      assert.equal results[0].b, undefined
       assert results.length == 1
       done()
 
+    it 'inserts a new doc with upsert specified and not matching doc', (done) ->
+      item = @col.insert { a: "xxx", b: 'test' }
+      results = @col.find({b: 'test'})
+      assert.equal results[0].a, 'xxx'
+      item = @col.update {b: 'notfound'}, { a: "123", b: 'testing' }, {upsert: true}
+      results = @col.find()
+      assert.equal results[1].a, "123"
+      assert.equal results[1].b, "testing" 
+      assert results.length == 2
+      done()
+
+    it 'updates doc with upsert when found', (done) ->
+      item = @col.insert { a: "xxx", b: 'test' }
+      results = @col.find({b: 'test'})
+      assert.equal results[0].a, 'xxx'
+      item = @col.update {b: 'test'}, { a: "123", b: 'testing' }, {upsert: true}
+      results = @col.find()
+      assert.equal results[0].a, "123"
+      assert.equal results[0].b, "testing" 
+      assert results.length == 1
+      done()
 
   context 'With aggregates', ->
     #aggregates
@@ -553,6 +586,18 @@ module.exports = ->
       item = @col.insert { name: 'nick', status: 'ok', age: 12 }
       results = @col.aggregate($match: {age: {$gt: 5}}, {$project: {_id: false, '$name': true}})
       assert.equal results[0]['name'], 'jack'
+      assert.equal results[0]['status'], undefined
+      assert.equal results[0]['_id'], undefined
+      done()
+
+    it 'skips first record', (done) ->
+      item = @col.insert { name: 'jack', status: 'awesome', age: 20 }
+      item = @col.insert { name: 'bob', status: 'ok', age: 2 }
+      item = @col.insert { name: 'nick', status: 'ok', age: 12 }
+      results = @col.aggregate($match: {age: {$gt: 5}},
+        {$project: {_id: false, '$name': true}},
+        {$skip: 1})
+      assert.equal results[0]['name'], 'nick'
       assert.equal results[0]['status'], undefined
       assert.equal results[0]['_id'], undefined
       done()
