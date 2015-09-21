@@ -190,7 +190,7 @@ exports.aggregateAdd = (values, temp_filtered, _items, counter, _id, i) ->
   for filt in temp_filtered
     sum = 0
     for it in _items
-      if it[_id] == filt['_id']
+      if it[_id] == filt['_id'] and _.include(sum_key, '$')
         sum += it[sum_key.replace('$', '')]
     filt[i] = sum
 
@@ -201,9 +201,12 @@ exports.aggregateAvg = (values, temp_filtered, _items, counter, _id, i) ->
     sum = 0
     length = 0
     for it in _items
-      if it[_id] == filt['_id']
+      if it[_id] == filt['_id'] and _.include(sum_key, '$')
         sum += it[sum_key.replace('$', '')]
         length += 1
+    #ensure no divide by zero
+    if sum < 1
+      length = 1
     filt[i] = sum / length
   temp_filtered
 

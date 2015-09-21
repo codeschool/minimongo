@@ -29,7 +29,7 @@ module.exports = ->
         done()
 
     it 'finds all rows', (done) ->
-      results = @col.find({}) 
+      results = @col.find({})
       assert.equal results.length, 3
       done()
 
@@ -143,7 +143,7 @@ module.exports = ->
       done()
 
     it 'removes item', (done) ->
-      @col.remove "2"
+      @col.remove _id: "2"
       results = @col.find({})
       assert.equal 2, results.length
       assert "1" in (result._id for result in results)
@@ -151,7 +151,7 @@ module.exports = ->
       done()
 
     it 'removes non-existent item', (done) ->
-      @col.remove "999"
+      @col.remove _id: "999"
       results = @col.find({})
       assert.equal 3, results.length
       done()
@@ -450,7 +450,7 @@ module.exports = ->
       item = @col.update {b: 'notfound'}, { a: "123", b: 'testing' }, {upsert: true}
       results = @col.find()
       assert.equal results[1].a, "123"
-      assert.equal results[1].b, "testing" 
+      assert.equal results[1].b, "testing"
       assert results.length == 2
       done()
 
@@ -461,7 +461,19 @@ module.exports = ->
       item = @col.update {b: 'test'}, { a: "123", b: 'testing' }, {upsert: true}
       results = @col.find()
       assert.equal results[0].a, "123"
-      assert.equal results[0].b, "testing" 
+      assert.equal results[0].b, "testing"
+      assert results.length == 1
+      done()
+
+    it 'inserts on update with complete document', (done) ->
+      item = @col.insert { a: "xxx", b: 'test' }
+      results = @col.find({b: 'test'})
+      assert.equal results[0].a, 'xxx'
+      item = @col.update {c: 'test'}, { a: "123", b: 'testing' }, {upsert: true}
+      results = @col.find({c: 'test'})
+      assert.equal results[0].a, "123"
+      assert.equal results[0].b, "testing"
+      assert.equal results[0].c, "test"
       assert results.length == 1
       done()
 
@@ -505,6 +517,16 @@ module.exports = ->
       assert.equal results.length, 2
       done()
 
+    it 'uses $group with $sum accumulator but returns 0 if no dollar', (done) ->
+      item = @col.insert { name: 'jack', status: 'awesome', age: 20 }
+      item = @col.insert { name: 'bob', status: 'ok', age: 2 }
+      item = @col.insert { name: 'bob', status: 'ok', age: 12 }
+      results = @col.aggregate([{$group: {_id: '$name', total: {$sum: 'age'}}}])
+      assert.equal results[0]['total'], 0
+      assert.equal results[1]['total'], 0 
+      assert.equal results.length, 2
+      done()
+
     it 'uses $match with $group with $sum accumulator', (done) ->
       item = @col.insert { name: 'jack', status: 'awesome', age: 20 }
       item = @col.insert { name: 'bob', status: 'ok', age: 2 }
@@ -520,6 +542,15 @@ module.exports = ->
       results = @col.aggregate([{$group: {_id: '$name', total: {$avg: '$age'}}}])
       assert.equal results[0]['total'], 20
       assert.equal results[1]['total'], 7
+      done()
+  
+    it 'uses $group with $avg accumulator with age without dollar returns 0', (done) ->
+      item = @col.insert { name: 'jack', status: 'awesome', age: 20 }
+      item = @col.insert { name: 'bob', status: 'ok', age: 2 }
+      item = @col.insert { name: 'bob', status: 'ok', age: 12 }
+      results = @col.aggregate([{$group: {_id: '$name', total: {$avg: 'age'}}}])
+      assert.equal results[0]['total'], 0
+      assert.equal results[1]['total'], 0
       done()
   
     it 'uses $limit to return only 1', (done) ->
@@ -602,20 +633,27 @@ module.exports = ->
       assert.equal results[0]['_id'], undefined
       done()
 
-  #shell commands
-  context 'With shell commands', ->
+  context 'With remove', ->
     beforeEach (done) ->
-      @col.items = {}
+      @reset =>
+        done()
+
+    it 'removes all records', (done) ->
+      item = @col.insert { name: 'jack', status: 'awesome', age: 20 }
+      item = @col.insert { name: 'nick', status: 'awesome', age: 20 }
+      @col.remove()
+      results = @col.find()
+
+      assert.equal results.length, 0
       done()
 
-    afterEach (done) ->
-      @col.items = {}
-      done()
-    #insert
+    it 'removes only specified record', (done) ->
+      item = @col.insert { name: 'jack', status: 'awesome', age: 20 }
+      item = @col.insert { name: 'nick', status: 'awesome', age: 20 }
+      @col.remove({name: 'jack'})
+      results = @col.find()
 
-    it 'show dbs', (done) ->
-      item = @col.insert { a: "xxx" }
-      results = @col.find({a: 'xxx'})
-      assert results[0].a == 'xxx'
+      assert.equal results.length, 1
       done()
+
 

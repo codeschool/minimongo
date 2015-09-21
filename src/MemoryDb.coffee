@@ -85,11 +85,12 @@ class Collection
         @items[item.doc._id] = item.doc
       else
         throw 'Duplicate ID'
+    return null
 
   update: (selector, docs, bases, success, error) ->
     theItems = processFind(@items, selector)
     if bases && bases['upsert'] && theItems.length < 1
-      this.insert(docs)
+      this.insert(_.merge(selector, docs))
       @upserts[docs._id] = docs
 
     for item in theItems
@@ -116,22 +117,12 @@ class Collection
     else
       selectors = selectors[0]
     return processAggregate(@items, selectors)
-    # for selector in selectors
-    #   if remaining.length < 1
-    #   then remaining = processAggregate(@items, selector)
-    #   else remaining.push(processAggregate(@items, selector))
-    # return remaining
 
-
-  remove: (id, success, error) ->
-    if _.has(@items, id)
-      @removes[id] = @items[id]
-      delete @items[id]
-      delete @upserts[id]
-    else
-      @removes[id] = { _id: id }
-
-    if success? then success()
+  remove: (selector, options, error) ->
+    found = processFind(@items, selector, options)
+    ids = _.collect(found, '_id')
+    for id in ids
+      @items = _.omit(@items, id)
 
   cache: (docs, selector, options, success, error) ->
     # Add all non-local that are not upserted or removed
