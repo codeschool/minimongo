@@ -89,24 +89,34 @@ class Collection
 
   update: (selector, docs, bases, success, error) ->
     theItems = processFind(@items, selector)
-    if bases && bases['upsert'] && theItems.length < 1
-      this.insert(_.merge(selector, docs))
-      @upserts[docs._id] = docs
-
-    for item in theItems
-      if item.docs == undefined
-        item.doc = docs
-      if item.base == undefined
-        item.base = @items[item.doc._id] or null
-      item = _.cloneDeep(item)
-      if _.include(Object.keys(docs), "$set")
-        for k,v of docs['$set']
-          @items[item._id][k] = v
-      else
-        for k,v of docs
-          id = @items[item._id]._id
-          @items[item._id] = docs
-        @items[item._id]._id = id
+    # utils.processUpdate(processFind(@items, selector), selector, docs, bases)
+#     if bases && bases['upsert'] && theItems.length < 1
+#       this.insert(_.merge(selector, docs))
+#       @upserts[docs._id] = docs
+#     
+#     if (!!bases and !!bases.multi) or theItems.length < 1
+#       theItems
+#     else
+#       theItems = [_.first(theItems)]
+#
+#     for item in theItems
+#       if item.docs == undefined
+#         item.doc = docs
+#       if item.base == undefined
+#         item.base = @items[item.doc._id] or null
+#       item = _.cloneDeep(item)
+#       if _.include(Object.keys(docs), "$inc")
+#         for k,v of docs['$inc']
+#           @items[item._id][k] = @items[item._id][k] + v
+#
+#       if _.include(Object.keys(docs), "$set")
+#         for k,v of docs['$set']
+#           @items[item._id][k] = v
+#       else
+#         for k,v of docs
+#           id = @items[item._id]._id
+#           @items[item._id] = docs
+#         @items[item._id]._id = id
 
   aggregate: (selectors...) ->
     remaining = []

@@ -258,7 +258,34 @@ exports.processAggregate = (items, selector, options) ->
     filtered.splice(0, selector['$skip'])
   return filtered
 
-
+# exports.processUpdate = (theItems, selector, docs, bases) ->
+#   if bases && bases['upsert'] && theItems.length < 1
+#     this.insert(_.merge(selector, docs))
+#     @upserts[docs._id] = docs
+#   
+#   if (!!bases and !!bases.multi) or theItems.length < 1
+#     theItems
+#   else
+#     theItems = [_.first(theItems)]
+#
+#   for item in theItems
+#     if item.docs == undefined
+#       item.doc = docs
+#     if item.base == undefined
+#       item.base = @items[item.doc._id] or null
+#     item = _.cloneDeep(item)
+#     if _.include(Object.keys(docs), "$inc")
+#       for k,v of docs['$inc']
+#         @items[item._id][k] = @items[item._id][k] + v
+#
+#     if _.include(Object.keys(docs), "$set")
+#       for k,v of docs['$set']
+#         @items[item._id][k] = v
+#     else
+#       for k,v of docs
+#         id = @items[item._id]._id
+#         @items[item._id] = docs
+#       @items[item._id]._id = id
 
 exports.filterFields = (items, fields={}) ->
   # Handle trivial case

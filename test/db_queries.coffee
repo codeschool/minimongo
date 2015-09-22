@@ -414,6 +414,31 @@ module.exports = ->
 
     #update
   
+    it 'uses $inc to increment age', (done) ->
+      item = @col.insert { name: 'dan', age: 12, car: 'honda' }
+      item = @col.update {name: 'dan'}, { $set: {car: 'ford'}, $inc: {age: 1}}
+      results = @col.find({name: 'dan'})
+      assert.equal results[0].age, 13
+      done()
+
+    it 'only updates first record without multi true', (done) ->
+      item = @col.insert { name: 'dan', age: 12, car: 'honda' }
+      item = @col.insert { name: 'dan', age: 22, car: 'honda' }
+      item = @col.update {name: 'dan'}, { $set: {car: 'ford'}, $inc: {age: 1}}
+      results = @col.find()
+      assert.equal results[0].age, 13
+      assert.equal results[1].age, 22
+      done()
+
+    it 'updates all records with multi true', (done) ->
+      item = @col.insert { name: 'dan', age: 12, car: 'honda' }
+      item = @col.insert { name: 'dan', age: 22, car: 'honda' }
+      item = @col.update {name: 'dan'}, { $set: {car: 'ford'}, $inc: {age: 1}}, {multi: true}
+      results = @col.find()
+      assert.equal results[0].age, 13
+      assert.equal results[1].age, 23
+      done()
+
     it 'updates correct record', (done) ->
       item = @col.insert { a: "xxx", b: 'test' }
       results = @col.find({b: 'test'})

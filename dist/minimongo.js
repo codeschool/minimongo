@@ -1530,43 +1530,8 @@ Collection = (function() {
   };
 
   Collection.prototype.update = function(selector, docs, bases, success, error) {
-    var id, item, k, theItems, v, _i, _len, _results;
-    theItems = processFind(this.items, selector);
-    if (bases && bases['upsert'] && theItems.length < 1) {
-      this.insert(_.merge(selector, docs));
-      this.upserts[docs._id] = docs;
-    }
-    _results = [];
-    for (_i = 0, _len = theItems.length; _i < _len; _i++) {
-      item = theItems[_i];
-      if (item.docs === void 0) {
-        item.doc = docs;
-      }
-      if (item.base === void 0) {
-        item.base = this.items[item.doc._id] || null;
-      }
-      item = _.cloneDeep(item);
-      if (_.include(Object.keys(docs), "$set")) {
-        _results.push((function() {
-          var _ref, _results1;
-          _ref = docs['$set'];
-          _results1 = [];
-          for (k in _ref) {
-            v = _ref[k];
-            _results1.push(this.items[item._id][k] = v);
-          }
-          return _results1;
-        }).call(this));
-      } else {
-        for (k in docs) {
-          v = docs[k];
-          id = this.items[item._id]._id;
-          this.items[item._id] = docs;
-        }
-        _results.push(this.items[item._id]._id = id);
-      }
-    }
-    return _results;
+    var theItems;
+    return theItems = processFind(this.items, selector);
   };
 
   Collection.prototype.aggregate = function() {
@@ -1589,7 +1554,6 @@ Collection = (function() {
     var found, id, ids, _i, _len, _results;
     found = processFind(this.items, selector, options);
     ids = _.collect(found, '_id');
-    debugger;
     _results = [];
     for (_i = 0, _len = ids.length; _i < _len; _i++) {
       id = ids[_i];
