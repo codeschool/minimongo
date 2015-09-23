@@ -1465,6 +1465,7 @@ Collection = (function() {
   function Collection(name) {
     this.name = name;
     this.items = {};
+    this.updates = {};
     this.upserts = {};
     this.removes = {};
   }
@@ -1530,8 +1531,115 @@ Collection = (function() {
   };
 
   Collection.prototype.update = function(selector, docs, bases, success, error) {
-    var theItems;
-    return theItems = processFind(this.items, selector);
+    var docUpdate, hit, id, item, k, theItems, v, _i, _len, _ref, _ref1, _ref2, _ref3, _ref4, _ref5, _ref6;
+    theItems = processFind(this.items, selector);
+    if (bases && bases['upsert'] && theItems.length < 1) {
+      this.insert(_.merge(selector, docs));
+      this.upserts[docs._id] = docs;
+    }
+    if ((!!bases && !!bases.multi) || theItems.length < 1) {
+      theItems;
+    } else {
+      theItems = [_.first(theItems)];
+    }
+    for (_i = 0, _len = theItems.length; _i < _len; _i++) {
+      item = theItems[_i];
+      if (item.docs === void 0) {
+        item.doc = docs;
+      }
+      if (item.base === void 0) {
+        item.base = this.items[item.doc._id] || null;
+      }
+      item = _.cloneDeep(item);
+      docUpdate = true;
+      if (_.include(Object.keys(docs), "$inc")) {
+        docUpdate = false;
+        this.updates[item._id] = docs;
+        _ref = docs['$inc'];
+        for (k in _ref) {
+          v = _ref[k];
+          this.items[item._id][k] = this.items[item._id][k] + v;
+        }
+      }
+      if (_.include(Object.keys(docs), "$set")) {
+        this.updates[item._id] = docs;
+        docUpdate = false;
+        _ref1 = docs['$set'];
+        for (k in _ref1) {
+          v = _ref1[k];
+          this.items[item._id][k] = v;
+        }
+      }
+      if (_.include(Object.keys(docs), "$unset")) {
+        this.updates[item._id] = docs;
+        docUpdate = false;
+        _ref2 = docs['$unset'];
+        for (k in _ref2) {
+          v = _ref2[k];
+          this.items[item._id] = _.omit(this.items[item._id], k);
+        }
+      }
+      if (_.include(Object.keys(docs), "$rename")) {
+        this.updates[item._id] = docs;
+        docUpdate = false;
+        _ref3 = docs['$rename'];
+        for (k in _ref3) {
+          v = _ref3[k];
+          this.items[item._id][v] = this.items[item._id][k];
+          this.items[item._id] = _.omit(this.items[item._id], k);
+        }
+      }
+      if (_.include(Object.keys(docs), "$max")) {
+        docUpdate = false;
+        hit = false;
+        _ref4 = docs['$max'];
+        for (k in _ref4) {
+          v = _ref4[k];
+          if (this.items[item._id][k] < v) {
+            this.items[item._id][k] = v;
+            hit = true;
+          }
+        }
+        if (hit) {
+          this.updates[item._id] = docs;
+        }
+      }
+      if (_.include(Object.keys(docs), "$min")) {
+        this.updates[item._id] = docs;
+        docUpdate = false;
+        hit = false;
+        _ref5 = docs['$min'];
+        for (k in _ref5) {
+          v = _ref5[k];
+          if (this.items[item._id][k] > v) {
+            this.items[item._id][k] = v;
+            hit = true;
+          }
+        }
+        if (hit) {
+          this.updates[item._id] = docs;
+        }
+      }
+      if (_.include(Object.keys(docs), "$mul")) {
+        this.updates[item._id] = docs;
+        docUpdate = false;
+        _ref6 = docs['$mul'];
+        for (k in _ref6) {
+          v = _ref6[k];
+          this.items[item._id][k] = this.items[item._id][k] * v;
+        }
+      }
+      if (docUpdate) {
+        this.updates[docs._id] = docs;
+        for (k in docs) {
+          v = docs[k];
+          id = this.items[item._id]._id;
+          this.items[item._id] = docs;
+        }
+        this.items[item._id]._id = id;
+      }
+    }
+    return '';
   };
 
   Collection.prototype.aggregate = function() {

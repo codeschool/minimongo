@@ -414,6 +414,58 @@ module.exports = ->
 
     #update
   
+    it 'multiples specified field', (done) ->
+      item = @col.insert { name: 'dan', age: 12, car: 'honda' }
+      item = @col.update {name: 'dan'}, { $mul: {age: 2}}
+      results = @col.find({name: 'dan'})
+      assert.equal results[0].age, 24
+      done()
+
+    it 'updates only if above max', (done) ->
+      item = @col.insert { name: 'dan', age: 12, car: 'honda' }
+      item = @col.update {name: 'dan'}, { $max: {age: 15}}
+      results = @col.find({name: 'dan'})
+      assert.equal results[0].age, 15
+      done()
+
+    it 'doesnt update if less than max', (done) ->
+      item = @col.insert { name: 'dan', age: 12, car: 'honda' }
+      item = @col.update {name: 'dan'}, { $max: {age: 10}}
+      results = @col.find({name: 'dan'})
+      assert.equal results[0].age, 12
+      done()
+
+    it 'updates only if below min', (done) ->
+      item = @col.insert { name: 'dan', age: 12, car: 'honda' }
+      item = @col.update {name: 'dan'}, { $min: {age: 5}}
+      results = @col.find({name: 'dan'})
+      assert.equal results[0].age, 5
+      done()
+
+    it 'doesnt update if greater than min', (done) ->
+      item = @col.insert { name: 'dan', age: 12, car: 'honda' }
+      item = @col.update {name: 'dan'}, { $min: {age: 55}}
+      results = @col.find({name: 'dan'})
+      assert.equal results[0].age, 12
+      done()
+
+    it 'unsets a field', (done) ->
+      item = @col.insert { name: 'dan', age: 12, car: 'honda' }
+      item = @col.update {name: 'dan'}, { $unset: {car: ''}}
+      results = @col.find({name: 'dan'})
+      assert.equal results[0].car, undefined
+      done()
+
+    it 'renames all fields', (done) ->
+      item = @col.insert { name: 'dan', age: 12, car: 'honda' }
+      item = @col.update {name: 'dan'}, { $rename: {car: 'make', age: 'oldness'}}
+      results = @col.find({name: 'dan'})
+      assert.equal results[0].make, 'honda'
+      assert.equal results[0].oldness, 12
+      assert.equal results[0].car, undefined
+      assert.equal results[0].age, undefined
+      done()
+
     it 'uses $inc to increment age', (done) ->
       item = @col.insert { name: 'dan', age: 12, car: 'honda' }
       item = @col.update {name: 'dan'}, { $set: {car: 'ford'}, $inc: {age: 1}}
