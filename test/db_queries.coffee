@@ -413,6 +413,31 @@ module.exports = ->
 
 
     #update
+    it 'update uses $set with array second index to update array', (done) ->
+      item = @col.insert { name: 'dan', car: ['honda', 'ford']}
+      item = @col.update {name: 'dan'}, { $set: {"car.0": 'ford', "car.1": 'fiat'}}
+      results = @col.find({name: 'dan'})
+      assert.equal results[0].car[0], 'ford'
+      assert.equal results[0].car[1], 'fiat'
+      done()
+  
+    it 'update uses $set with array index to update array', (done) ->
+      item = @col.insert { name: 'dan', car: ['honda', 'ford']}
+      item = @col.update {name: 'dan'}, { $set: {"car.0": 'ford'}}
+      results = @col.find({name: 'dan'})
+      assert.equal results[0].car[0], 'ford'
+      assert.equal results[0].car[1], 'ford'
+      done()
+  
+    it 'update uses $push to push onto array', (done) ->
+      item = @col.insert { name: 'dan', car: ['honda', 'ford']}
+      item = @col.update {name: 'dan'}, { $push: {car: 'ford'}}
+      results = @col.find({name: 'dan'})
+      assert.equal results[0].car[0], 'honda'
+      assert.equal results[0].car[1], 'ford'
+      assert.equal results[0].car[2], 'ford'
+      done()
+  
     it 'update doesnt add to array with $addToSet if in array', (done) ->
       item = @col.insert { name: 'dan', car: ['honda', 'ford']}
       item = @col.update {name: 'dan'}, { $addToSet: {car: 'ford'}}

@@ -3192,6 +3192,9 @@ exports.processUpdate = function(theItems, selector, docs, bases, database) {
     if (_.include(Object.keys(docs), "$addToSet")) {
       docUpdate = exports.update$addToSet(database, docs, item);
     }
+    if (_.include(Object.keys(docs), "$push")) {
+      docUpdate = exports.update$push(database, docs, item);
+    }
     if (docUpdate) {
       database.updates[docs._id] = docs;
       for (k in docs) {
@@ -3203,6 +3206,24 @@ exports.processUpdate = function(theItems, selector, docs, bases, database) {
     }
   }
   return '';
+};
+
+exports.update$push = function(database, docs, item) {
+  var docUpdate, hit, k, v, _ref;
+  docUpdate = false;
+  hit = false;
+  _ref = docs['$push'];
+  for (k in _ref) {
+    v = _ref[k];
+    if (database.items[item._id][k]) {
+      hit = true;
+      database.items[item._id][k].push(v);
+    }
+  }
+  if (hit) {
+    database.updates[item._id] = docs;
+  }
+  return docUpdate;
 };
 
 exports.update$addToSet = function(database, docs, item) {
@@ -3253,6 +3274,10 @@ exports.update$set = function(selector, database, docs, item) {
       arr = database.items[item._id][placeholder[0]];
       index = arr.indexOf(_.values(selector)[0]);
       database.items[item._id][placeholder[0]][index] = _.values(docs['$set'])[0];
+    } else if (!isNaN(placeholder[placeholder.length - 1])) {
+      arr = database.items[item._id][placeholder[0]];
+      index = placeholder[placeholder.length - 1];
+      database.items[item._id][placeholder[0]][index] = _.values(docs['$set'])[index];
     } else {
       database.items[item._id][k] = v;
     }

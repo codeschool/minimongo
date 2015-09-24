@@ -132,6 +132,9 @@ exports.processUpdate = (theItems, selector, docs, bases, database) ->
     if _.include(Object.keys(docs), "$addToSet")
       docUpdate = exports.update$addToSet(database, docs, item)
 
+    if _.include(Object.keys(docs), "$push")
+      docUpdate = exports.update$push(database, docs, item)
+
     if docUpdate
       database.updates[docs._id] = docs
       for k,v of docs
@@ -139,6 +142,19 @@ exports.processUpdate = (theItems, selector, docs, bases, database) ->
         database.items[item._id] = docs
       database.items[item._id]._id = id
   return ''
+
+exports.update$push = (database, docs, item) ->
+  docUpdate = false
+  hit = false
+  for k,v of docs['$push']
+    if database.items[item._id][k]
+      hit = true
+      database.items[item._id][k].push(v)
+  #ensure actually removed for writeResult
+  if hit
+    database.updates[item._id] = docs
+  docUpdate
+
 
 exports.update$addToSet = (database, docs, item) ->
   docUpdate = false
@@ -174,7 +190,10 @@ exports.update$set = (selector, database, docs, item) ->
       arr = database.items[item._id][placeholder[0]]
       index = arr.indexOf(_.values(selector)[0])
       database.items[item._id][placeholder[0]][index] = _.values(docs['$set'])[0]
-      # debugger
+    else if !isNaN(placeholder[placeholder.length - 1])
+      arr = database.items[item._id][placeholder[0]]
+      index = placeholder[placeholder.length - 1]
+      database.items[item._id][placeholder[0]][index] = _.values(docs['$set'])[index]
     else
       database.items[item._id][k] = v
   docUpdate
