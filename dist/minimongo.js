@@ -3130,7 +3130,7 @@ exports.migrateLocalDb = function(fromDb, toDb, success, error) {
 };
 
 exports.processUpdate = function(theItems, selector, docs, bases, database) {
-  var data, docUpdate, hit, id, item, k, keys, v, _i, _len, _ref, _ref1, _ref2, _ref3, _ref4, _ref5, _ref6;
+  var docUpdate, id, item, k, v, _i, _len, _ref, _ref1;
   if (bases && bases['upsert'] && theItems.length < 1) {
     if (_.include(Object.keys(docs), '$set')) {
       database.insert(_.merge(selector, docs['$set']));
@@ -3165,100 +3165,29 @@ exports.processUpdate = function(theItems, selector, docs, bases, database) {
       }
     }
     if (_.include(Object.keys(docs), "$set")) {
-      database.updates[item._id] = docs;
-      docUpdate = false;
-      _ref1 = docs['$set'];
-      for (k in _ref1) {
-        v = _ref1[k];
-        database.items[item._id][k] = v;
-      }
+      docUpdate = exports.update$set(selector, database, docs, item);
     }
     if (_.include(Object.keys(docs), "$unset")) {
-      docUpdate = false;
-      hit = false;
-      _ref2 = docs['$unset'];
-      for (k in _ref2) {
-        v = _ref2[k];
-        if (database.items[item._id][k]) {
-          hit = true;
-        }
-        database.items[item._id] = _.omit(database.items[item._id], k);
-      }
-      if (hit) {
-        database.updates[item._id] = docs;
-      }
+      docUpdate = exports.update$unset(database, docs, item);
     }
     if (_.include(Object.keys(docs), "$rename")) {
       database.updates[item._id] = docs;
       docUpdate = false;
-      _ref3 = docs['$rename'];
-      for (k in _ref3) {
-        v = _ref3[k];
+      _ref1 = docs['$rename'];
+      for (k in _ref1) {
+        v = _ref1[k];
         database.items[item._id][v] = database.items[item._id][k];
         database.items[item._id] = _.omit(database.items[item._id], k);
       }
     }
     if (_.include(Object.keys(docs), "$max")) {
-      docUpdate = false;
-      hit = false;
-      _ref4 = docs['$max'];
-      for (k in _ref4) {
-        v = _ref4[k];
-        if (_.include(k, '.')) {
-          keys = exports.prepareDot(k);
-          data = exports.convertDot(item, keys[0])[keys[1]];
-          if (data < v) {
-            exports.convertDot(item, keys[0])[keys[1]] = v;
-            database.items[item._id] = _.omit(item, 'doc', 'base');
-            hit = true;
-          }
-        } else if (database.items[item._id][k] < v) {
-          database.items[item._id][k] = v;
-          hit = true;
-        }
-      }
-      if (hit) {
-        database.updates[item._id] = docs;
-      }
+      docUpdate = exports.update$max(database, docs, item);
     }
     if (_.include(Object.keys(docs), "$min")) {
-      database.updates[item._id] = docs;
-      docUpdate = false;
-      hit = false;
-      _ref5 = docs['$min'];
-      for (k in _ref5) {
-        v = _ref5[k];
-        if (_.include(k, '.')) {
-          keys = exports.prepareDot(k);
-          data = exports.convertDot(item, keys[0])[keys[1]];
-          if (data > v) {
-            exports.convertDot(item, keys[0])[keys[1]] = v;
-            database.items[item._id] = _.omit(item, 'doc', 'base');
-            hit = true;
-          }
-        } else if (database.items[item._id][k] > v) {
-          database.items[item._id][k] = v;
-          hit = true;
-        }
-      }
-      if (hit) {
-        database.updates[item._id] = docs;
-      }
+      docUpdate = exports.update$min(database, docs, item);
     }
     if (_.include(Object.keys(docs), "$mul")) {
-      database.updates[item._id] = docs;
-      docUpdate = false;
-      _ref6 = docs['$mul'];
-      for (k in _ref6) {
-        v = _ref6[k];
-        if (_.include(k, '.')) {
-          keys = exports.prepareDot(k);
-          exports.convertDot(item, keys[0])[keys[1]] = exports.convertDot(item, keys[0])[keys[1]] * v;
-          database.items[item._id] = _.omit(item, 'doc', 'base');
-        } else {
-          database.items[item._id][k] = database.items[item._id][k] * v;
-        }
-      }
+      docUpdate = exports.update$mul(database, docs, item);
     }
     if (docUpdate) {
       database.updates[docs._id] = docs;
@@ -3271,6 +3200,114 @@ exports.processUpdate = function(theItems, selector, docs, bases, database) {
     }
   }
   return '';
+};
+
+exports.update$unset = function(database, docs, item) {
+  var docUpdate, hit, k, v, _ref;
+  docUpdate = false;
+  hit = false;
+  _ref = docs['$unset'];
+  for (k in _ref) {
+    v = _ref[k];
+    if (database.items[item._id][k]) {
+      hit = true;
+    }
+    database.items[item._id] = _.omit(database.items[item._id], k);
+  }
+  if (hit) {
+    database.updates[item._id] = docs;
+  }
+  return docUpdate;
+};
+
+exports.update$set = function(selector, database, docs, item) {
+  var arr, docUpdate, index, k, placeholder, v, _ref;
+  database.updates[item._id] = docs;
+  docUpdate = false;
+  _ref = docs['$set'];
+  for (k in _ref) {
+    v = _ref[k];
+    placeholder = k.split('.');
+    if (placeholder[placeholder.length - 1] === '$') {
+      arr = database.items[item._id][placeholder[0]];
+      index = arr.indexOf(_.values(selector)[0]);
+      database.items[item._id][placeholder[0]][index] = _.values(docs['$set'])[0];
+    } else {
+      database.items[item._id][k] = v;
+    }
+  }
+  return docUpdate;
+};
+
+exports.update$max = function(database, docs, item) {
+  var data, docUpdate, hit, k, keys, v, _ref;
+  docUpdate = false;
+  hit = false;
+  _ref = docs['$max'];
+  for (k in _ref) {
+    v = _ref[k];
+    if (_.include(k, '.')) {
+      keys = exports.prepareDot(k);
+      data = exports.convertDot(item, keys[0])[keys[1]];
+      if (data < v) {
+        exports.convertDot(item, keys[0])[keys[1]] = v;
+        database.items[item._id] = _.omit(item, 'doc', 'base');
+        hit = true;
+      }
+    } else if (database.items[item._id][k] < v) {
+      database.items[item._id][k] = v;
+      hit = true;
+    }
+  }
+  if (hit) {
+    database.updates[item._id] = docs;
+  }
+  return docUpdate;
+};
+
+exports.update$min = function(database, docs, item) {
+  var data, docUpdate, hit, k, keys, v, _ref;
+  database.updates[item._id] = docs;
+  docUpdate = false;
+  hit = false;
+  _ref = docs['$min'];
+  for (k in _ref) {
+    v = _ref[k];
+    if (_.include(k, '.')) {
+      keys = exports.prepareDot(k);
+      data = exports.convertDot(item, keys[0])[keys[1]];
+      if (data > v) {
+        exports.convertDot(item, keys[0])[keys[1]] = v;
+        database.items[item._id] = _.omit(item, 'doc', 'base');
+        hit = true;
+      }
+    } else if (database.items[item._id][k] > v) {
+      database.items[item._id][k] = v;
+      hit = true;
+    }
+  }
+  if (hit) {
+    database.updates[item._id] = docs;
+  }
+  return docUpdate;
+};
+
+exports.update$mul = function(database, docs, item) {
+  var docUpdate, k, keys, v, _ref;
+  database.updates[item._id] = docs;
+  docUpdate = false;
+  _ref = docs['$mul'];
+  for (k in _ref) {
+    v = _ref[k];
+    if (_.include(k, '.')) {
+      keys = exports.prepareDot(k);
+      exports.convertDot(item, keys[0])[keys[1]] = exports.convertDot(item, keys[0])[keys[1]] * v;
+      database.items[item._id] = _.omit(item, 'doc', 'base');
+    } else {
+      database.items[item._id][k] = database.items[item._id][k] * v;
+    }
+  }
+  return docUpdate;
 };
 
 exports.prepareDot = function(k) {

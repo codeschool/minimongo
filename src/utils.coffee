@@ -108,21 +108,10 @@ exports.processUpdate = (theItems, selector, docs, bases, database) ->
         database.items[item._id][k] = database.items[item._id][k] + v
 
     if _.include(Object.keys(docs), "$set")
-      database.updates[item._id] = docs
-      docUpdate = false
-      for k,v of docs['$set']
-        database.items[item._id][k] = v
+      docUpdate = exports.update$set(selector, database, docs, item)
 
     if _.include(Object.keys(docs), "$unset")
-      docUpdate = false
-      hit = false
-      for k,v of docs['$unset']
-        if database.items[item._id][k]
-          hit = true
-        database.items[item._id] = _.omit(database.items[item._id], k)
-      #ensure actually removed for writeResult
-      if hit
-        database.updates[item._id] = docs
+      docUpdate = exports.update$unset(database, docs, item)
 
     if _.include(Object.keys(docs), "$rename")
       database.updates[item._id] = docs
@@ -132,52 +121,13 @@ exports.processUpdate = (theItems, selector, docs, bases, database) ->
         database.items[item._id] = _.omit(database.items[item._id], k)
 
     if _.include(Object.keys(docs), "$max")
-      docUpdate = false
-      hit = false
-      for k,v of docs['$max']
-        if _.include(k, '.')
-          keys = exports.prepareDot(k)
-          data = exports.convertDot(item, keys[0])[keys[1]]
-          if data < v
-            exports.convertDot(item, keys[0])[keys[1]] = v
-            database.items[item._id] = _.omit(item, 'doc', 'base')
-            hit = true
-        else if database.items[item._id][k] < v
-          database.items[item._id][k] = v
-          hit = true
-
-      if(hit)
-        database.updates[item._id] = docs
+      docUpdate = exports.update$max(database, docs, item)
 
     if _.include(Object.keys(docs), "$min")
-      database.updates[item._id] = docs
-      docUpdate = false
-      hit = false
-      for k,v of docs['$min']
-        if _.include(k, '.')
-          keys = exports.prepareDot(k)
-          data = exports.convertDot(item, keys[0])[keys[1]]
-          if data > v
-            exports.convertDot(item, keys[0])[keys[1]] = v
-            database.items[item._id] = _.omit(item, 'doc', 'base')
-            hit = true
-        else if database.items[item._id][k] > v
-          database.items[item._id][k] = v
-          hit = true
-
-      if(hit)
-        database.updates[item._id] = docs
+      docUpdate = exports.update$min(database, docs, item)
 
     if _.include(Object.keys(docs), "$mul")
-      database.updates[item._id] = docs
-      docUpdate = false
-      for k,v of docs['$mul']
-        if _.include(k, '.')
-          keys = exports.prepareDot(k)
-          exports.convertDot(item, keys[0])[keys[1]] = exports.convertDot(item, keys[0])[keys[1]] * v
-          database.items[item._id] = _.omit(item, 'doc', 'base')
-        else
-          database.items[item._id][k] = database.items[item._id][k] * v
+      docUpdate = exports.update$mul(database, docs, item)
 
     if docUpdate
       database.updates[docs._id] = docs
@@ -185,8 +135,85 @@ exports.processUpdate = (theItems, selector, docs, bases, database) ->
         id = database.items[item._id]._id
         database.items[item._id] = docs
       database.items[item._id]._id = id
-
   return ''
+
+
+exports.update$unset = (database, docs, item) ->
+  docUpdate = false
+  hit = false
+  for k,v of docs['$unset']
+    if database.items[item._id][k]
+      hit = true
+    database.items[item._id] = _.omit(database.items[item._id], k)
+  #ensure actually removed for writeResult
+  if hit
+    database.updates[item._id] = docs
+  docUpdate
+
+exports.update$set = (selector, database, docs, item) ->
+  database.updates[item._id] = docs
+  docUpdate = false
+  for k,v of docs['$set']
+    placeholder = k.split('.')
+    if(placeholder[placeholder.length - 1] == '$')
+      arr = database.items[item._id][placeholder[0]]
+      index = arr.indexOf(_.values(selector)[0])
+      database.items[item._id][placeholder[0]][index] = _.values(docs['$set'])[0]
+      # debugger
+    else
+      database.items[item._id][k] = v
+  docUpdate
+
+exports.update$max = (database, docs, item) ->
+  docUpdate = false
+  hit = false
+  for k,v of docs['$max']
+    if _.include(k, '.')
+      keys = exports.prepareDot(k)
+      data = exports.convertDot(item, keys[0])[keys[1]]
+      if data < v
+        exports.convertDot(item, keys[0])[keys[1]] = v
+        database.items[item._id] = _.omit(item, 'doc', 'base')
+        hit = true
+    else if database.items[item._id][k] < v
+      database.items[item._id][k] = v
+      hit = true
+
+  if(hit)
+    database.updates[item._id] = docs
+  docUpdate
+
+exports.update$min = (database, docs, item) ->
+  database.updates[item._id] = docs
+  docUpdate = false
+  hit = false
+  for k,v of docs['$min']
+    if _.include(k, '.')
+      keys = exports.prepareDot(k)
+      data = exports.convertDot(item, keys[0])[keys[1]]
+      if data > v
+        exports.convertDot(item, keys[0])[keys[1]] = v
+        database.items[item._id] = _.omit(item, 'doc', 'base')
+        hit = true
+    else if database.items[item._id][k] > v
+      database.items[item._id][k] = v
+      hit = true
+
+  if(hit)
+    database.updates[item._id] = docs
+  docUpdate
+
+exports.update$mul = (database, docs, item) ->
+  database.updates[item._id] = docs
+  docUpdate = false
+  for k,v of docs['$mul']
+    if _.include(k, '.')
+      keys = exports.prepareDot(k)
+      exports.convertDot(item, keys[0])[keys[1]] = exports.convertDot(item, keys[0])[keys[1]] * v
+      database.items[item._id] = _.omit(item, 'doc', 'base')
+    else
+      database.items[item._id][k] = database.items[item._id][k] * v
+  docUpdate
 
 exports.prepareDot = (k) ->
   arr = k.split('.')

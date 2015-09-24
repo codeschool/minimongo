@@ -413,6 +413,13 @@ module.exports = ->
 
 
     #update
+    it 'uses positional operator with array', (done) ->
+      item = @col.insert { name: 'dan', car: ['honda', 'ford']}
+      item = @col.update {'car': 'honda'}, { $set: {"car.$": 'ferrari'}}
+      results = @col.find({name: 'dan'})
+      assert.equal results[0].car[0], 'ferrari'
+      done()
+  
     it 'updates nested documents with $max dot notation', (done) ->
       item = @col.insert { name: 'dan', car: {age: 12}}
       item = @col.update {name: 'dan'}, { $max: {"car.age": 22}}
