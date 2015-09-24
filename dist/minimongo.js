@@ -3189,6 +3189,9 @@ exports.processUpdate = function(theItems, selector, docs, bases, database) {
     if (_.include(Object.keys(docs), "$mul")) {
       docUpdate = exports.update$mul(database, docs, item);
     }
+    if (_.include(Object.keys(docs), "$addToSet")) {
+      docUpdate = exports.update$addToSet(database, docs, item);
+    }
     if (docUpdate) {
       database.updates[docs._id] = docs;
       for (k in docs) {
@@ -3200,6 +3203,24 @@ exports.processUpdate = function(theItems, selector, docs, bases, database) {
     }
   }
   return '';
+};
+
+exports.update$addToSet = function(database, docs, item) {
+  var docUpdate, hit, k, v, _ref;
+  docUpdate = false;
+  hit = false;
+  _ref = docs['$addToSet'];
+  for (k in _ref) {
+    v = _ref[k];
+    if (database.items[item._id][k] && !_.include(database.items[item._id][k], v)) {
+      hit = true;
+      database.items[item._id][k].push(v);
+    }
+  }
+  if (hit) {
+    database.updates[item._id] = docs;
+  }
+  return docUpdate;
 };
 
 exports.update$unset = function(database, docs, item) {

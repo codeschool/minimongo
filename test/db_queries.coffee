@@ -413,6 +413,24 @@ module.exports = ->
 
 
     #update
+    it 'update doesnt add to array with $addToSet if in array', (done) ->
+      item = @col.insert { name: 'dan', car: ['honda', 'ford']}
+      item = @col.update {name: 'dan'}, { $addToSet: {car: 'ford'}}
+      results = @col.find({name: 'dan'})
+      assert.equal results[0].car[0], 'honda'
+      assert.equal results[0].car[1], 'ford'
+      assert.equal results[0].car[2], undefined
+      done()
+  
+    it 'update adds to array with $addToSet', (done) ->
+      item = @col.insert { name: 'dan', car: ['honda', 'ford']}
+      item = @col.update {name: 'dan'}, { $addToSet: {car: 'toyota'}}
+      results = @col.find({name: 'dan'})
+      assert.equal results[0].car[0], 'honda'
+      assert.equal results[0].car[1], 'ford'
+      assert.equal results[0].car[2], 'toyota'
+      done()
+  
     it 'uses positional operator with array', (done) ->
       item = @col.insert { name: 'dan', car: ['honda', 'ford']}
       item = @col.update {'car': 'honda'}, { $set: {"car.$": 'ferrari'}}

@@ -129,6 +129,9 @@ exports.processUpdate = (theItems, selector, docs, bases, database) ->
     if _.include(Object.keys(docs), "$mul")
       docUpdate = exports.update$mul(database, docs, item)
 
+    if _.include(Object.keys(docs), "$addToSet")
+      docUpdate = exports.update$addToSet(database, docs, item)
+
     if docUpdate
       database.updates[docs._id] = docs
       for k,v of docs
@@ -136,6 +139,18 @@ exports.processUpdate = (theItems, selector, docs, bases, database) ->
         database.items[item._id] = docs
       database.items[item._id]._id = id
   return ''
+
+exports.update$addToSet = (database, docs, item) ->
+  docUpdate = false
+  hit = false
+  for k,v of docs['$addToSet']
+    if database.items[item._id][k] && !_.include(database.items[item._id][k], v)
+      hit = true
+      database.items[item._id][k].push(v)
+  #ensure actually removed for writeResult
+  if hit
+    database.updates[item._id] = docs
+  docUpdate
 
 
 exports.update$unset = (database, docs, item) ->
