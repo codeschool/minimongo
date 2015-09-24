@@ -76,6 +76,140 @@ exports.migrateLocalDb = (fromDb, toDb, success, error) ->
 
   hybridDb.upload(success, error)
 
+exports.processUpdate = (theItems, selector, docs, bases, database) ->
+
+  if bases && bases['upsert'] && theItems.length < 1
+    if _.include(Object.keys(docs), '$set')
+      database.insert(_.merge(selector, docs['$set']))
+    else
+      database.insert(_.merge(selector, docs))
+    database.upserts[docs._id] = docs
+
+  if (!!bases and !!bases.multi) or theItems.length < 1
+    theItems
+  else
+    theItems = [_.first(theItems)]
+
+  for item in theItems
+    if item.docs == undefined
+      item.doc = docs
+    if item.base == undefined
+      item.base = database.items[item.doc._id] or null
+    item = _.cloneDeep(item)
+
+    #keep track of found records for writeResult
+    database.founds[item._id] = docs
+
+    docUpdate = true
+    if _.include(Object.keys(docs), "$inc")
+      docUpdate = false
+      database.updates[item._id] = docs
+      for k,v of docs['$inc']
+        database.items[item._id][k] = database.items[item._id][k] + v
+
+    if _.include(Object.keys(docs), "$set")
+      database.updates[item._id] = docs
+      docUpdate = false
+      for k,v of docs['$set']
+        database.items[item._id][k] = v
+
+    if _.include(Object.keys(docs), "$unset")
+      docUpdate = false
+      hit = false
+      for k,v of docs['$unset']
+        if database.items[item._id][k]
+          hit = true
+        database.items[item._id] = _.omit(database.items[item._id], k)
+      #ensure actually removed for writeResult
+      if hit
+        database.updates[item._id] = docs
+
+    if _.include(Object.keys(docs), "$rename")
+      database.updates[item._id] = docs
+      docUpdate = false
+      for k,v of docs['$rename']
+        database.items[item._id][v] = database.items[item._id][k]
+        database.items[item._id] = _.omit(database.items[item._id], k)
+
+    if _.include(Object.keys(docs), "$max")
+      docUpdate = false
+      hit = false
+      for k,v of docs['$max']
+        if _.include(k, '.')
+          keys = exports.prepareDot(k)
+          data = exports.convertDot(item, keys[0])[keys[1]]
+          if data < v
+            exports.convertDot(item, keys[0])[keys[1]] = v
+            database.items[item._id] = _.omit(item, 'doc', 'base')
+            hit = true
+        else if database.items[item._id][k] < v
+          database.items[item._id][k] = v
+          hit = true
+
+      if(hit)
+        database.updates[item._id] = docs
+
+    if _.include(Object.keys(docs), "$min")
+      database.updates[item._id] = docs
+      docUpdate = false
+      hit = false
+      for k,v of docs['$min']
+        if _.include(k, '.')
+          keys = exports.prepareDot(k)
+          data = exports.convertDot(item, keys[0])[keys[1]]
+          if data > v
+            exports.convertDot(item, keys[0])[keys[1]] = v
+            database.items[item._id] = _.omit(item, 'doc', 'base')
+            hit = true
+        else if database.items[item._id][k] > v
+          database.items[item._id][k] = v
+          hit = true
+
+      if(hit)
+        database.updates[item._id] = docs
+
+    if _.include(Object.keys(docs), "$mul")
+      database.updates[item._id] = docs
+      docUpdate = false
+      for k,v of docs['$mul']
+        if _.include(k, '.')
+          keys = exports.prepareDot(k)
+          exports.convertDot(item, keys[0])[keys[1]] = exports.convertDot(item, keys[0])[keys[1]] * v
+          database.items[item._id] = _.omit(item, 'doc', 'base')
+        else
+          database.items[item._id][k] = database.items[item._id][k] * v
+
+    if docUpdate
+      database.updates[docs._id] = docs
+      for k,v of docs
+        id = database.items[item._id]._id
+        database.items[item._id] = docs
+      database.items[item._id]._id = id
+
+  return ''
+
+exports.prepareDot = (k) ->
+  arr = k.split('.')
+  final_key = arr.pop()
+  keys = arr.join('.')
+  return [keys, final_key]
+
+exports.convertDot = (obj, _is, value) ->
+  if typeof _is == 'string'
+    exports.convertDot obj, _is.split('.'), value
+  else if _is.length == 1 and value != undefined
+    obj[_is[0]] = value
+  else if _is.length == 0
+    obj
+  else
+    exports.convertDot obj[_is[0]], _is.slice(1), value
+
+
+# exports.processDot = (item, docs, database) ->
+    
+    # database.items[item._id][k] = database.items[item._id][k] * v
+
+
 # Processes a find with sorting and filtering and limiting
 exports.processFind = (items, selector, options) ->
   filtered = _.filter(_.values(items), compileDocumentSelector(selector))
@@ -148,6 +282,8 @@ addMethods = (filtered) ->
   return me
 
 exports.convertToObject = (selectors) ->
+  if selectors.constructor != Array
+    return selectors
   obj = {}
   for select in selectors
     key = Object.keys(select)[0]

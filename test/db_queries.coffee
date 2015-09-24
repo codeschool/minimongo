@@ -413,6 +413,33 @@ module.exports = ->
 
 
     #update
+    it 'updates nested documents with $max dot notation', (done) ->
+      item = @col.insert { name: 'dan', car: {age: 12}}
+      item = @col.update {name: 'dan'}, { $max: {"car.age": 22}}
+      results = @col.find({name: 'dan'})
+      assert.equal results[0].car.age, 22
+      done()
+  
+    it 'updates nested documents with $min dot notation', (done) ->
+      item = @col.insert { name: 'dan', car: {age: 12}}
+      item = @col.update {name: 'dan'}, { $min: {"car.age": 2}}
+      results = @col.find({name: 'dan'})
+      assert.equal results[0].car.age, 2
+      done()
+  
+    it 'updates nested documents with $mul dot notation', (done) ->
+      item = @col.insert { name: 'dan', car: {age: 12}}
+      item = @col.update {name: 'dan'}, { $mul: {"car.age": 2}}
+      results = @col.find({name: 'dan'})
+      assert.equal results[0].car.age, 24
+      done()
+  
+    it 'upserts with $set using the set parameters as document', (done) ->
+      item = @col.insert { name: 'dan', age: 12, car: 'honda' }
+      item = @col.update {name: 'dan'}, { $set: {name: 'dan', age: 2}}, {upsert: true}
+      results = @col.find({name: 'dan'})
+      assert.equal results[0].age, 2
+      done()
   
     it 'multiples specified field', (done) ->
       item = @col.insert { name: 'dan', age: 12, car: 'honda' }

@@ -1465,6 +1465,7 @@ Collection = (function() {
   function Collection(name) {
     this.name = name;
     this.items = {};
+    this.founds = {};
     this.updates = {};
     this.upserts = {};
     this.removes = {};
@@ -1531,115 +1532,9 @@ Collection = (function() {
   };
 
   Collection.prototype.update = function(selector, docs, bases, success, error) {
-    var docUpdate, hit, id, item, k, theItems, v, _i, _len, _ref, _ref1, _ref2, _ref3, _ref4, _ref5, _ref6;
+    var theItems;
     theItems = processFind(this.items, selector);
-    if (bases && bases['upsert'] && theItems.length < 1) {
-      this.insert(_.merge(selector, docs));
-      this.upserts[docs._id] = docs;
-    }
-    if ((!!bases && !!bases.multi) || theItems.length < 1) {
-      theItems;
-    } else {
-      theItems = [_.first(theItems)];
-    }
-    for (_i = 0, _len = theItems.length; _i < _len; _i++) {
-      item = theItems[_i];
-      if (item.docs === void 0) {
-        item.doc = docs;
-      }
-      if (item.base === void 0) {
-        item.base = this.items[item.doc._id] || null;
-      }
-      item = _.cloneDeep(item);
-      docUpdate = true;
-      if (_.include(Object.keys(docs), "$inc")) {
-        docUpdate = false;
-        this.updates[item._id] = docs;
-        _ref = docs['$inc'];
-        for (k in _ref) {
-          v = _ref[k];
-          this.items[item._id][k] = this.items[item._id][k] + v;
-        }
-      }
-      if (_.include(Object.keys(docs), "$set")) {
-        this.updates[item._id] = docs;
-        docUpdate = false;
-        _ref1 = docs['$set'];
-        for (k in _ref1) {
-          v = _ref1[k];
-          this.items[item._id][k] = v;
-        }
-      }
-      if (_.include(Object.keys(docs), "$unset")) {
-        this.updates[item._id] = docs;
-        docUpdate = false;
-        _ref2 = docs['$unset'];
-        for (k in _ref2) {
-          v = _ref2[k];
-          this.items[item._id] = _.omit(this.items[item._id], k);
-        }
-      }
-      if (_.include(Object.keys(docs), "$rename")) {
-        this.updates[item._id] = docs;
-        docUpdate = false;
-        _ref3 = docs['$rename'];
-        for (k in _ref3) {
-          v = _ref3[k];
-          this.items[item._id][v] = this.items[item._id][k];
-          this.items[item._id] = _.omit(this.items[item._id], k);
-        }
-      }
-      if (_.include(Object.keys(docs), "$max")) {
-        docUpdate = false;
-        hit = false;
-        _ref4 = docs['$max'];
-        for (k in _ref4) {
-          v = _ref4[k];
-          if (this.items[item._id][k] < v) {
-            this.items[item._id][k] = v;
-            hit = true;
-          }
-        }
-        if (hit) {
-          this.updates[item._id] = docs;
-        }
-      }
-      if (_.include(Object.keys(docs), "$min")) {
-        this.updates[item._id] = docs;
-        docUpdate = false;
-        hit = false;
-        _ref5 = docs['$min'];
-        for (k in _ref5) {
-          v = _ref5[k];
-          if (this.items[item._id][k] > v) {
-            this.items[item._id][k] = v;
-            hit = true;
-          }
-        }
-        if (hit) {
-          this.updates[item._id] = docs;
-        }
-      }
-      if (_.include(Object.keys(docs), "$mul")) {
-        this.updates[item._id] = docs;
-        docUpdate = false;
-        _ref6 = docs['$mul'];
-        for (k in _ref6) {
-          v = _ref6[k];
-          this.items[item._id][k] = this.items[item._id][k] * v;
-        }
-      }
-      if (docUpdate) {
-        this.updates[docs._id] = docs;
-        for (k in docs) {
-          v = docs[k];
-          id = this.items[item._id]._id;
-          this.items[item._id] = docs;
-        }
-        this.items[item._id]._id = id;
-      }
-    }
-    return '';
+    return utils.processUpdate(theItems, selector, docs, bases, this);
   };
 
   Collection.prototype.aggregate = function() {
@@ -3234,6 +3129,170 @@ exports.migrateLocalDb = function(fromDb, toDb, success, error) {
   return hybridDb.upload(success, error);
 };
 
+exports.processUpdate = function(theItems, selector, docs, bases, database) {
+  var data, docUpdate, hit, id, item, k, keys, v, _i, _len, _ref, _ref1, _ref2, _ref3, _ref4, _ref5, _ref6;
+  if (bases && bases['upsert'] && theItems.length < 1) {
+    if (_.include(Object.keys(docs), '$set')) {
+      database.insert(_.merge(selector, docs['$set']));
+    } else {
+      database.insert(_.merge(selector, docs));
+    }
+    database.upserts[docs._id] = docs;
+  }
+  if ((!!bases && !!bases.multi) || theItems.length < 1) {
+    theItems;
+  } else {
+    theItems = [_.first(theItems)];
+  }
+  for (_i = 0, _len = theItems.length; _i < _len; _i++) {
+    item = theItems[_i];
+    if (item.docs === void 0) {
+      item.doc = docs;
+    }
+    if (item.base === void 0) {
+      item.base = database.items[item.doc._id] || null;
+    }
+    item = _.cloneDeep(item);
+    database.founds[item._id] = docs;
+    docUpdate = true;
+    if (_.include(Object.keys(docs), "$inc")) {
+      docUpdate = false;
+      database.updates[item._id] = docs;
+      _ref = docs['$inc'];
+      for (k in _ref) {
+        v = _ref[k];
+        database.items[item._id][k] = database.items[item._id][k] + v;
+      }
+    }
+    if (_.include(Object.keys(docs), "$set")) {
+      database.updates[item._id] = docs;
+      docUpdate = false;
+      _ref1 = docs['$set'];
+      for (k in _ref1) {
+        v = _ref1[k];
+        database.items[item._id][k] = v;
+      }
+    }
+    if (_.include(Object.keys(docs), "$unset")) {
+      docUpdate = false;
+      hit = false;
+      _ref2 = docs['$unset'];
+      for (k in _ref2) {
+        v = _ref2[k];
+        if (database.items[item._id][k]) {
+          hit = true;
+        }
+        database.items[item._id] = _.omit(database.items[item._id], k);
+      }
+      if (hit) {
+        database.updates[item._id] = docs;
+      }
+    }
+    if (_.include(Object.keys(docs), "$rename")) {
+      database.updates[item._id] = docs;
+      docUpdate = false;
+      _ref3 = docs['$rename'];
+      for (k in _ref3) {
+        v = _ref3[k];
+        database.items[item._id][v] = database.items[item._id][k];
+        database.items[item._id] = _.omit(database.items[item._id], k);
+      }
+    }
+    if (_.include(Object.keys(docs), "$max")) {
+      docUpdate = false;
+      hit = false;
+      _ref4 = docs['$max'];
+      for (k in _ref4) {
+        v = _ref4[k];
+        if (_.include(k, '.')) {
+          keys = exports.prepareDot(k);
+          data = exports.convertDot(item, keys[0])[keys[1]];
+          if (data < v) {
+            exports.convertDot(item, keys[0])[keys[1]] = v;
+            database.items[item._id] = _.omit(item, 'doc', 'base');
+            hit = true;
+          }
+        } else if (database.items[item._id][k] < v) {
+          database.items[item._id][k] = v;
+          hit = true;
+        }
+      }
+      if (hit) {
+        database.updates[item._id] = docs;
+      }
+    }
+    if (_.include(Object.keys(docs), "$min")) {
+      database.updates[item._id] = docs;
+      docUpdate = false;
+      hit = false;
+      _ref5 = docs['$min'];
+      for (k in _ref5) {
+        v = _ref5[k];
+        if (_.include(k, '.')) {
+          keys = exports.prepareDot(k);
+          data = exports.convertDot(item, keys[0])[keys[1]];
+          if (data > v) {
+            exports.convertDot(item, keys[0])[keys[1]] = v;
+            database.items[item._id] = _.omit(item, 'doc', 'base');
+            hit = true;
+          }
+        } else if (database.items[item._id][k] > v) {
+          database.items[item._id][k] = v;
+          hit = true;
+        }
+      }
+      if (hit) {
+        database.updates[item._id] = docs;
+      }
+    }
+    if (_.include(Object.keys(docs), "$mul")) {
+      database.updates[item._id] = docs;
+      docUpdate = false;
+      _ref6 = docs['$mul'];
+      for (k in _ref6) {
+        v = _ref6[k];
+        if (_.include(k, '.')) {
+          keys = exports.prepareDot(k);
+          exports.convertDot(item, keys[0])[keys[1]] = exports.convertDot(item, keys[0])[keys[1]] * v;
+          database.items[item._id] = _.omit(item, 'doc', 'base');
+        } else {
+          database.items[item._id][k] = database.items[item._id][k] * v;
+        }
+      }
+    }
+    if (docUpdate) {
+      database.updates[docs._id] = docs;
+      for (k in docs) {
+        v = docs[k];
+        id = database.items[item._id]._id;
+        database.items[item._id] = docs;
+      }
+      database.items[item._id]._id = id;
+    }
+  }
+  return '';
+};
+
+exports.prepareDot = function(k) {
+  var arr, final_key, keys;
+  arr = k.split('.');
+  final_key = arr.pop();
+  keys = arr.join('.');
+  return [keys, final_key];
+};
+
+exports.convertDot = function(obj, _is, value) {
+  if (typeof _is === 'string') {
+    return exports.convertDot(obj, _is.split('.'), value);
+  } else if (_is.length === 1 && value !== void 0) {
+    return obj[_is[0]] = value;
+  } else if (_is.length === 0) {
+    return obj;
+  } else {
+    return exports.convertDot(obj[_is[0]], _is.slice(1), value);
+  }
+};
+
 exports.processFind = function(items, selector, options) {
   var filtered, me;
   filtered = _.filter(_.values(items), compileDocumentSelector(selector));
@@ -3307,6 +3366,9 @@ addMethods = function(filtered) {
 
 exports.convertToObject = function(selectors) {
   var key, obj, select, _i, _len;
+  if (selectors.constructor !== Array) {
+    return selectors;
+  }
   obj = {};
   for (_i = 0, _len = selectors.length; _i < _len; _i++) {
     select = selectors[_i];

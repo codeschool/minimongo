@@ -33,6 +33,7 @@ class Collection
     @name = name
 
     @items = {}
+    @founds = {}
     @updates = {}
     @upserts = {}  # Pending upserts by _id. Still in items
     @removes = {}  # Pending removes by _id. No longer in items
@@ -90,86 +91,7 @@ class Collection
 
   update: (selector, docs, bases, success, error) ->
     theItems = processFind(@items, selector)
-    if bases && bases['upsert'] && theItems.length < 1
-      #
-      #
-      #Need to use $set here to upsert the set properties
-      #
-      #
-      this.insert(_.merge(selector, docs))
-      @upserts[docs._id] = docs
-
-    if (!!bases and !!bases.multi) or theItems.length < 1
-      theItems
-    else
-      theItems = [_.first(theItems)]
-
-    for item in theItems
-      if item.docs == undefined
-        item.doc = docs
-      if item.base == undefined
-        item.base = @items[item.doc._id] or null
-      item = _.cloneDeep(item)
-      docUpdate = true
-      if _.include(Object.keys(docs), "$inc")
-        docUpdate = false
-        @updates[item._id] = docs
-        for k,v of docs['$inc']
-          @items[item._id][k] = @items[item._id][k] + v
-
-      if _.include(Object.keys(docs), "$set")
-        @updates[item._id] = docs
-        docUpdate = false
-        for k,v of docs['$set']
-          @items[item._id][k] = v
-
-      if _.include(Object.keys(docs), "$unset")
-        @updates[item._id] = docs
-        docUpdate = false
-        for k,v of docs['$unset']
-          @items[item._id] = _.omit(@items[item._id], k)
-
-      if _.include(Object.keys(docs), "$rename")
-        @updates[item._id] = docs
-        docUpdate = false
-        for k,v of docs['$rename']
-          @items[item._id][v] = @items[item._id][k]
-          @items[item._id] = _.omit(@items[item._id], k)
-
-      if _.include(Object.keys(docs), "$max")
-        docUpdate = false
-        hit = false
-        for k,v of docs['$max']
-          if @items[item._id][k] < v
-            @items[item._id][k] = v
-            hit = true
-        if(hit)
-          @updates[item._id] = docs
-
-      if _.include(Object.keys(docs), "$min")
-        @updates[item._id] = docs
-        docUpdate = false
-        hit = false
-        for k,v of docs['$min']
-          if @items[item._id][k] > v
-            @items[item._id][k] = v
-            hit = true
-        if(hit)
-          @updates[item._id] = docs
-
-      if _.include(Object.keys(docs), "$mul")
-        @updates[item._id] = docs
-        docUpdate = false
-        for k,v of docs['$mul']
-          @items[item._id][k] = @items[item._id][k] * v
-
-      if docUpdate
-        @updates[docs._id] = docs
-        for k,v of docs
-          id = @items[item._id]._id
-          @items[item._id] = docs
-        @items[item._id]._id = id
-    return ''
+    return utils.processUpdate(theItems, selector, docs, bases, this)
 
   aggregate: (selectors...) ->
     remaining = []
