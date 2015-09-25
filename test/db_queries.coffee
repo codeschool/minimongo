@@ -413,6 +413,23 @@ module.exports = ->
 
 
     #update
+    it 'updates inserts with $inc and upsert', (done) ->
+      item = @col.insert { name: 'dan', car: ['honda', 'ford'], age: 12}
+      item = @col.update {name: 'danxx'}, { $inc: {age: 2}}, {upsert: true}
+      results = @col.find({name: 'danxx'})
+      debugger
+      assert.equal results[0].age, 2
+      done()
+  
+    it 'update with chained pipeline', (done) ->
+      item = @col.insert { name: 'dan', car: ['honda', 'ford'], age: 12}
+      item = @col.update {name: 'dan'}, { $set: {"car.0": 'ford', "car.1": 'fiat'}, $inc: {age: 2}}
+      results = @col.find({name: 'dan'})
+      assert.equal results[0].car[0], 'ford'
+      assert.equal results[0].car[1], 'fiat'
+      assert.equal results[0].age, 14
+      done()
+  
     it 'update uses $set with array second index to update array', (done) ->
       item = @col.insert { name: 'dan', car: ['honda', 'ford']}
       item = @col.update {name: 'dan'}, { $set: {"car.0": 'ford', "car.1": 'fiat'}}

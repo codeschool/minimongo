@@ -81,6 +81,11 @@ exports.processUpdate = (theItems, selector, docs, bases, database) ->
   if bases && bases['upsert'] && theItems.length < 1
     if _.include(Object.keys(docs), '$set')
       database.insert(_.merge(selector, docs['$set']))
+
+    #upsert doesnt find but operation used
+    else if Object.keys(docs)[0].indexOf('$') >= 0
+      database.insert(_.merge(selector, docs[Object.keys(docs)[0]]))
+
     else
       database.insert(_.merge(selector, docs))
     database.upserts[docs._id] = docs
