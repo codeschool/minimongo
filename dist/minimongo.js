@@ -3141,7 +3141,7 @@ exports.processUpdate = function(theItems, selector, docs, bases, database) {
     }
     database.upserts[docs._id] = docs;
   }
-  if ((!!bases && !!bases.multi) || theItems.length < 1) {
+  if ((!!bases && !!bases.multi) || theItems.length < 1 || _.isEmpty(selector)) {
     theItems;
   } else {
     theItems = [_.first(theItems)];
@@ -3624,13 +3624,19 @@ exports.filterFields = function(items, fields) {
     return items;
   }
   return _.map(items, function(item) {
-    var field, from, newItem, obj, path, pathElem, to, _i, _j, _k, _l, _len, _len1, _len2, _len3, _len4, _m, _ref, _ref1, _ref2, _ref3;
+    var availKeys, field, from, newItem, obj, path, pathElem, to, _i, _j, _k, _l, _len, _len1, _len2, _len3, _len4, _m, _ref, _ref1, _ref2;
     item = _.cloneDeep(item);
     newItem = {};
-    if (_.first(_.values(fields)) === 1) {
-      _ref = _.keys(fields).concat(["_id"]);
-      for (_i = 0, _len = _ref.length; _i < _len; _i++) {
-        field = _ref[_i];
+    if (_.include(_.values(fields), 1) || _.include(_.values(fields), true)) {
+      if (_.include(_.keys(fields), '_id') && !fields['_id']) {
+        availKeys = _.keys(fields);
+        fields['_id'] = false;
+      } else {
+        availKeys = _.keys(fields).concat(["_id"]);
+        fields['_id'] = true;
+      }
+      for (_i = 0, _len = availKeys.length; _i < _len; _i++) {
+        field = availKeys[_i];
         path = field.split(".");
         obj = item;
         for (_j = 0, _len1 = path.length; _j < _len1; _j++) {
@@ -3644,25 +3650,27 @@ exports.filterFields = function(items, fields) {
         }
         from = item;
         to = newItem;
-        _ref1 = _.initial(path);
-        for (_k = 0, _len2 = _ref1.length; _k < _len2; _k++) {
-          pathElem = _ref1[_k];
+        _ref = _.initial(path);
+        for (_k = 0, _len2 = _ref.length; _k < _len2; _k++) {
+          pathElem = _ref[_k];
           to[pathElem] = to[pathElem] || {};
           to = to[pathElem];
           from = from[pathElem];
         }
-        to[_.last(path)] = from[_.last(path)];
+        if (fields[field]) {
+          to[_.last(path)] = from[_.last(path)];
+        }
       }
       return newItem;
     } else {
-      _ref2 = _.keys(fields);
-      for (_l = 0, _len3 = _ref2.length; _l < _len3; _l++) {
-        field = _ref2[_l];
+      _ref1 = _.keys(fields);
+      for (_l = 0, _len3 = _ref1.length; _l < _len3; _l++) {
+        field = _ref1[_l];
         path = field.split(".");
         obj = item;
-        _ref3 = _.initial(path);
-        for (_m = 0, _len4 = _ref3.length; _m < _len4; _m++) {
-          pathElem = _ref3[_m];
+        _ref2 = _.initial(path);
+        for (_m = 0, _len4 = _ref2.length; _m < _len4; _m++) {
+          pathElem = _ref2[_m];
           if (obj) {
             obj = obj[pathElem];
           }

@@ -89,8 +89,9 @@ exports.processUpdate = (theItems, selector, docs, bases, database) ->
     else
       database.insert(_.merge(selector, docs))
     database.upserts[docs._id] = docs
-
-  if (!!bases and !!bases.multi) or theItems.length < 1
+  
+  #handle for {} and multi: true
+  if (!!bases and !!bases.multi) or theItems.length < 1 or _.isEmpty(selector)
     theItems
   else
     theItems = [_.first(theItems)]
@@ -473,9 +474,16 @@ exports.filterFields = (items, fields={}) ->
 
     newItem = {}
 
-    if _.first(_.values(fields)) == 1
+    if _.include(_.values(fields), 1) or _.include(_.values(fields), true)
       # Include fields
-      for field in _.keys(fields).concat(["_id"])
+      if _.include(_.keys(fields), '_id') and !fields['_id']
+        availKeys = _.keys(fields)
+        fields['_id'] = false
+      else
+        availKeys = _.keys(fields).concat(["_id"])
+        fields['_id'] = true
+
+      for field in availKeys
         path = field.split(".")
 
         # Determine if path exists
@@ -498,8 +506,8 @@ exports.filterFields = (items, fields={}) ->
           from = from[pathElem]
 
         # Copy value
-        to[_.last(path)] = from[_.last(path)]
-
+        if fields[field]
+          to[_.last(path)] = from[_.last(path)]
       return newItem
     else
       # Exclude fields

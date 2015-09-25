@@ -28,6 +28,12 @@ module.exports = ->
         @col.insert { _id:"3", a:"Bob", b:3 }
         done()
 
+    it 'projects multiple fields', (done) ->
+      results = @col.find({}, {"_id": false, a: true})
+      assert.equal results[0].a, 'Alice'
+      assert.equal results[0]._id, undefined
+      done()
+
     it 'finds all rows', (done) ->
       results = @col.find({})
       assert.equal results.length, 3
@@ -413,6 +419,17 @@ module.exports = ->
 
 
     #update
+    it 'updates all records when selector is {}', (done) ->
+      item = @col.insert { name: 'dan', car: ['honda', 'ford'], age: 12}
+      item = @col.insert { name: 'dan', car: ['honda', 'ford'], age: 12}
+      item = @col.insert { name: 'dan', car: ['honda', 'ford'], age: 12}
+      item = @col.update {}, { $inc: {age: 2}}
+      results = @col.find()
+      assert.equal results[0].age, 14
+      assert.equal results[1].age, 14
+      assert.equal results[2].age, 14
+      done()
+  
     it 'updates inserts with $inc and upsert', (done) ->
       item = @col.insert { name: 'dan', car: ['honda', 'ford'], age: 12}
       item = @col.update {name: 'danxx'}, { $inc: {age: 2}}, {upsert: true}
