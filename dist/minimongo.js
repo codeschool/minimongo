@@ -3141,7 +3141,7 @@ exports.processUpdate = function(theItems, selector, docs, bases, database) {
     }
     database.upserts[docs._id] = docs;
   }
-  if ((!!bases && !!bases.multi) || theItems.length < 1 || _.isEmpty(selector)) {
+  if ((!!bases && !!bases.multi) || theItems.length < 1) {
     theItems;
   } else {
     theItems = [_.first(theItems)];

@@ -419,15 +419,15 @@ module.exports = ->
 
 
     #update
-    it 'updates all records when selector is {}', (done) ->
+    it 'updates first record when selector is {}', (done) ->
       item = @col.insert { name: 'dan', car: ['honda', 'ford'], age: 12}
       item = @col.insert { name: 'dan', car: ['honda', 'ford'], age: 12}
       item = @col.insert { name: 'dan', car: ['honda', 'ford'], age: 12}
       item = @col.update {}, { $inc: {age: 2}}
       results = @col.find()
       assert.equal results[0].age, 14
-      assert.equal results[1].age, 14
-      assert.equal results[2].age, 14
+      assert.equal results[1].age, 12
+      assert.equal results[2].age, 12
       done()
   
     it 'updates inserts with $inc and upsert', (done) ->

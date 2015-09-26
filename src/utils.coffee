@@ -89,9 +89,8 @@ exports.processUpdate = (theItems, selector, docs, bases, database) ->
     else
       database.insert(_.merge(selector, docs))
     database.upserts[docs._id] = docs
-  
-  #handle for {} and multi: true
-  if (!!bases and !!bases.multi) or theItems.length < 1 or _.isEmpty(selector)
+
+  if (!!bases and !!bases.multi) or theItems.length < 1
     theItems
   else
     theItems = [_.first(theItems)]
