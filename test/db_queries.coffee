@@ -23,10 +23,20 @@ module.exports = ->
   context 'With sample rows', ->
     beforeEach (done) ->
       @reset =>
-        @col.insert { _id:"1", a:"Alice", b:1, c: { d: 1, e: 2 } }
-        @col.insert { _id:"2", a:"Charlie", b:2, c: { d: 2, e: 3 } }
-        @col.insert { _id:"3", a:"Bob", b:3 }
+        @col.insert { _id:"1", a:"Alice", b:1, c: { d: 1, e: 2 }, lengths: [1,3,2] }
+        @col.insert { _id:"2", a:"Charlie", b:2, c: { d: 2, e: 3 } , lengths: [2,3,3]}
+        @col.insert { _id:"3", a:"Bob", b:3 , lengths: [5,3,4]}
         done()
+
+    it 'finds 2 with $elemMatch', (done) ->
+      results = @col.find({lengths: {$elemMatch: {$gt: 1, $lt: 3}}})
+      assert.equal results.length, 2
+      done()
+
+    it 'finds 3 with $elemMatch', (done) ->
+      results = @col.find({lengths: {$elemMatch: {$gt: 1, $lt: 4}}})
+      assert.equal results.length, 3
+      done()
 
     it 'projects multiple fields', (done) ->
       results = @col.find({}, {"_id": false, a: true})
@@ -108,17 +118,17 @@ module.exports = ->
 
     it 'sorts by proper method asc', (done) ->
       results = @col.find().sort({a: 1})
-      assert.deepEqual results[0], { _id: "1",  a: "Alice", b: 1, c: { d: 1, e: 2 } }
+      assert.deepEqual results[0], { _id:"1", a:"Alice", b:1, c: { d: 1, e: 2 }, lengths: [1,3,2] }
       done()
 
     it 'sorts by proper method asc with no values', (done) ->
       results = @col.find().sort({a: 1})
-      assert.deepEqual results[0], { _id: "1",  a: "Alice", b: 1, c: { d: 1, e: 2 } }
+      assert.deepEqual results[0], { _id:"1", a:"Alice", b:1, c: { d: 1, e: 2 }, lengths: [1,3,2] }
       done()
 
     it 'sorts by proper method desc', (done) ->
       results = @col.find().sort({a: -1})
-      assert.deepEqual results[0], { _id:"3", a:"Bob", b:3 } 
+      assert.deepEqual results[0], { _id:"3", a:"Bob", b:3 , lengths: [5,3,4]}
       done()
 
 
