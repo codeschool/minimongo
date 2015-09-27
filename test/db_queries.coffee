@@ -118,7 +118,10 @@ module.exports = ->
 
     it 'sorts by proper method asc', (done) ->
       results = @col.find().sort({a: 1})
-      assert.deepEqual results[0], { _id:"1", a:"Alice", b:1, c: { d: 1, e: 2 }, lengths: [1,3,2] }
+      assert.equal results[0]._id, '1'
+      assert.equal results[1]._id, '3'
+      assert.equal results[2]._id, '2'
+      # assert.deepEqual results[0], { _id:"1", a:"Alice", b:1, c: { d: 1, e: 2 }, lengths: [1,3,2] }
       done()
 
     it 'sorts by proper method asc with no values', (done) ->
@@ -128,7 +131,9 @@ module.exports = ->
 
     it 'sorts by proper method desc', (done) ->
       results = @col.find().sort({a: -1})
-      assert.deepEqual results[0], { _id:"3", a:"Bob", b:3 , lengths: [5,3,4]}
+      assert.equal results[0]._id, '2'
+      assert.equal results[1]._id, '3'
+      assert.equal results[2]._id, '1'
       done()
 
 
@@ -189,22 +194,22 @@ module.exports = ->
 
     it 'limits with sort', (done) ->
       results = @col.find({}).sort({a: 1}).limit(2)
-      assert.deepEqual _.pluck(results, '_id'), ["1","2"]
+      assert.deepEqual _.pluck(results, '_id'), ["1","3"]
       done()
 
     it 'skips', (done) ->
       results = @col.find({}).sort({'a': 1}).skip(1)
-      assert.deepEqual _.pluck(results, '_id'), ["2", "3"]
+      assert.deepEqual _.pluck(results, '_id'), ["3", "2"]
       done()
 
     it 'skips with chained limit', (done) ->
       results = @col.find({}).sort({'a': 1}).skip(1).limit(1)
-      assert.deepEqual _.pluck(results, '_id'), ["2"]
+      assert.deepEqual _.pluck(results, '_id'), ["3"]
       done()
 
     it 'skips with chained limit reversed', (done) ->
       results = @col.find({}).sort({'a': 1}).limit(3).skip(2)
-      assert.deepEqual _.pluck(results, '_id'), ["3"]
+      assert.deepEqual _.pluck(results, '_id'), ["2"]
       done()
 
     it 'fetches independent copies', (done) ->
@@ -270,7 +275,7 @@ module.exports = ->
 
     it 'finds sorts in Javascript order', (done) ->
       results = @col.find({}).sort({'a': -1})
-      assert.deepEqual _.pluck(results, '_id'), ["2","1"]
+      assert.deepEqual _.pluck(results, '_id'), ["1","2"]
       done()
 
   context 'With integer array in json rows', ->

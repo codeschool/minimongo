@@ -317,10 +317,12 @@ exports.processFind = (items, selector, options) ->
 
   filtered['sort'] = (options) ->
     direction = options[Object.keys(options)[0]]
-    sorted = new SortedObjectArray(Object.keys(options)[0], me)['array'][0]
+    sorted = addMethods(_.sortBy me, Object.keys(options)[0])
     if direction < 0
       sorted = sorted.reverse()
-    return sorted = addMethods(sorted)
+    return sorted 
+
+
   return filtered
 
 addMethods = (filtered) ->
@@ -340,10 +342,10 @@ addMethods = (filtered) ->
 
   me['sort'] = (options) ->
     direction = options[Object.keys(options)[0]]
-    sorted = new SortedObjectArray(Object.keys(options)[0], me)['array'][0]
+    sorted = addMethods(_.sortBy me, Object.keys(options)[0])
     if direction < 0
       sorted = sorted.reverse()
-    addMethods(sorted)
+    return sorted
 
   return me
 

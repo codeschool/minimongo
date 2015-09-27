@@ -3414,11 +3414,11 @@ exports.processFind = function(items, selector, options) {
   filtered['sort'] = function(options) {
     var direction, sorted;
     direction = options[Object.keys(options)[0]];
-    sorted = new SortedObjectArray(Object.keys(options)[0], me)['array'][0];
+    sorted = addMethods(_.sortBy(me, Object.keys(options)[0]));
     if (direction < 0) {
       sorted = sorted.reverse();
     }
-    return sorted = addMethods(sorted);
+    return sorted;
   };
   return filtered;
 };
@@ -3443,11 +3443,11 @@ addMethods = function(filtered) {
   me['sort'] = function(options) {
     var direction, sorted;
     direction = options[Object.keys(options)[0]];
-    sorted = new SortedObjectArray(Object.keys(options)[0], me)['array'][0];
+    sorted = addMethods(_.sortBy(me, Object.keys(options)[0]));
     if (direction < 0) {
       sorted = sorted.reverse();
     }
-    return addMethods(sorted);
+    return sorted;
   };
   return me;
 };
