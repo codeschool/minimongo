@@ -177,6 +177,11 @@ module.exports = ->
       assert.equal 3, results.length
       done()
 
+    it 'counts records in pipeline', (done) ->
+      count =  @col.find({}).count()
+      assert.equal count, 3
+      done()
+
     it 'sorts ascending', (done) ->
       results = @col.find({}).sort({'_id': 1})
       assert.deepEqual _.pluck(results, '_id'), ["1","2","3"]
@@ -192,9 +197,19 @@ module.exports = ->
       assert.deepEqual _.pluck(results, '_id'), ["1", "2"]
       done()
 
+    it 'limits can return full set', (done) ->
+      results = @col.find({}).limit(50)
+      assert.deepEqual _.pluck(results, '_id'), ["1", "2", "3"]
+      done()
+
     it 'limits with sort', (done) ->
       results = @col.find({}).sort({a: 1}).limit(2)
       assert.deepEqual _.pluck(results, '_id'), ["1","3"]
+      done()
+
+    it 'limits with sort to 3 records', (done) ->
+      results = @col.find({}).sort({a: 1}).limit(3)
+      assert.deepEqual _.pluck(results, '_id'), ["1","3","2"]
       done()
 
     it 'skips', (done) ->
@@ -686,6 +701,54 @@ module.exports = ->
       @reset =>
         done()
     
+    it 'runs $match, $project, $group, $sort then limit with $max', (done) ->
+      item = @col.insert { name: 'jack', status: 'awesome', age: 20, car: {'make': 1} }
+      item = @col.insert { name: 'jack', status: 'awesome', age: 20, car: {'make': 11} }
+      item = @col.insert { name: 'bob', status: 'ok', age: 2 , car: {'make': 12}}
+      item = @col.insert { name: 'sam', status: 'eh', age: 12 , car: {'make': 22}}
+      results = @col.aggregate([{$match: {age: {$gte: 10}}}, {$project: {"name": true, "car.make": true}}, {$group: {_id: '$name', total: {$max: '$car.make'}}}])
+      assert.equal results[0]._id, 'jack'
+      assert.equal results[0].total, 11
+      assert.equal results[1]._id, 'sam'
+      assert.equal results[1].total, 22
+      done()
+
+    it 'runs $match, $project, $group, $sort then limit with $sum', (done) ->
+      item = @col.insert { name: 'jack', status: 'awesome', age: 20, car: {'make': 1} }
+      item = @col.insert { name: 'jack', status: 'awesome', age: 20, car: {'make': 1} }
+      item = @col.insert { name: 'bob', status: 'ok', age: 2 , car: {'make': 12}}
+      item = @col.insert { name: 'sam', status: 'eh', age: 12 , car: {'make': 22}}
+      results = @col.aggregate([{$match: {age: {$gte: 10}}}, {$project: {"name": true, "car.make": true}}, {$group: {_id: '$name', total: {$sum: '$car.make'}}}])
+      assert.equal results[0]._id, 'jack'
+      assert.equal results[0].total, 2
+      assert.equal results[1]._id, 'sam'
+      assert.equal results[1].total, 22
+      done()
+
+    it 'runs $match, $project, $group, $sort then limit with $min', (done) ->
+      item = @col.insert { name: 'jack', status: 'awesome', age: 20, car: {'make': 1} }
+      item = @col.insert { name: 'jack', status: 'awesome', age: 20, car: {'make': 11} }
+      item = @col.insert { name: 'bob', status: 'ok', age: 2 , car: {'make': 12}}
+      item = @col.insert { name: 'sam', status: 'eh', age: 12 , car: {'make': 22}}
+      results = @col.aggregate([{$match: {age: {$gte: 10}}}, {$project: {"name": true, "car.make": true}}, {$group: {_id: '$name', total: {$min: '$car.make'}}}])
+      assert.equal results[0]._id, 'jack'
+      assert.equal results[0].total, 1
+      assert.equal results[1]._id, 'sam'
+      assert.equal results[1].total, 22
+      done()
+
+    it 'runs $match, $project, $group, $sort then limit with $avg', (done) ->
+      item = @col.insert { name: 'jack', status: 'awesome', age: 20, car: {'make': 1} }
+      item = @col.insert { name: 'jack', status: 'awesome', age: 20, car: {'make': 11} }
+      item = @col.insert { name: 'bob', status: 'ok', age: 2 , car: {'make': 12}}
+      item = @col.insert { name: 'sam', status: 'eh', age: 12 , car: {'make': 22}}
+      results = @col.aggregate([{$match: {age: {$gte: 10}}}, {$project: {"name": true, "car.make": true}}, {$group: {_id: '$name', total: {$avg: '$car.make'}}}])
+      assert.equal results[0]._id, 'jack'
+      assert.equal results[0].total, 6
+      assert.equal results[1]._id, 'sam'
+      assert.equal results[1].total, 22
+      done()
+
     it 'uses $match to limit results', (done) ->
       item = @col.insert { name: 'jack', status: 'awesome', age: 20 }
       item = @col.insert { name: 'bob', status: 'ok', age: 2 }
@@ -812,6 +875,7 @@ module.exports = ->
       assert.equal results[0]['name'], 'jack'
       assert.equal results[0]['status'], undefined
       assert.equal results[0]['_id'], undefined
+      assert.equal results[1]['name'], 'nick'
       done()
 
     it 'handles for non array passed in ', (done) ->

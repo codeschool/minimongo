@@ -3420,6 +3420,9 @@ exports.processFind = function(items, selector, options) {
     }
     return sorted;
   };
+  filtered['count'] = function() {
+    return _.size(me);
+  };
   return filtered;
 };
 
@@ -3438,7 +3441,10 @@ addMethods = function(filtered) {
     return addMethods(data);
   };
   me['limit'] = function(max) {
-    return addMethods(_.first(filtered, max));
+    var obj;
+    obj = addMethods(me.slice(0, max));
+    obj.preLimit = filtered;
+    return obj;
   };
   me['sort'] = function(options) {
     var direction, sorted;
@@ -3448,6 +3454,9 @@ addMethods = function(filtered) {
       sorted = sorted.reverse();
     }
     return sorted;
+  };
+  filtered['count'] = function() {
+    return _.size(me);
   };
   return me;
 };
@@ -3496,6 +3505,12 @@ exports.aggregateGroup = function(filtered, items, selector, options) {
         }
       } else {
         operation = Object.keys(values[counter])[0];
+        if (operation === '$max') {
+          exports.aggregateMax(values, temp_filtered, _items, counter, _id, i);
+        }
+        if (operation === '$min') {
+          exports.aggregateMin(values, temp_filtered, _items, counter, _id, i);
+        }
         if (operation === '$sum') {
           exports.aggregateAdd(values, temp_filtered, _items, counter, _id, i);
         } else if (operation === '$avg') {
@@ -3506,6 +3521,62 @@ exports.aggregateGroup = function(filtered, items, selector, options) {
     }
   }
   return filtered = temp_filtered;
+};
+
+exports.processOperation = function(it, sum_key) {
+  var k, val;
+  val = it[sum_key.replace('$', '')] || it[sum_key];
+  if (typeof val === 'object') {
+    k = sum_key.replace('$', '').split('.');
+    return it[sum_key][k[1]];
+  } else if (typeof val === 'string' || typeof val === 'number') {
+    return val;
+  }
+};
+
+exports.aggregateMax = function(values, temp_filtered, _items, counter, _id, i) {
+  var filt, it, max, opt_keys, sum_key, _i, _j, _len, _len1, _results;
+  opt_keys = Object.keys(values[counter]);
+  sum_key = values[counter][opt_keys];
+  _results = [];
+  for (_i = 0, _len = temp_filtered.length; _i < _len; _i++) {
+    filt = temp_filtered[_i];
+    max = 0;
+    for (_j = 0, _len1 = _items.length; _j < _len1; _j++) {
+      it = _items[_j];
+      if (it[_id] === filt['_id'] && _.include(sum_key, '$')) {
+        if (max < exports.processOperation(it, sum_key)) {
+          max = exports.processOperation(it, sum_key);
+        }
+      }
+    }
+    _results.push(filt[i] = max);
+  }
+  return _results;
+};
+
+exports.aggregateMin = function(values, temp_filtered, _items, counter, _id, i) {
+  var filt, it, max, opt_keys, sum_key, _i, _j, _len, _len1, _results;
+  opt_keys = Object.keys(values[counter]);
+  sum_key = values[counter][opt_keys];
+  _results = [];
+  for (_i = 0, _len = temp_filtered.length; _i < _len; _i++) {
+    filt = temp_filtered[_i];
+    max = null;
+    for (_j = 0, _len1 = _items.length; _j < _len1; _j++) {
+      it = _items[_j];
+      if (it[_id] === filt['_id'] && _.include(sum_key, '$')) {
+        if (!max) {
+          max = exports.processOperation(it, sum_key);
+        }
+        if (max > exports.processOperation(it, sum_key)) {
+          max = exports.processOperation(it, sum_key);
+        }
+      }
+    }
+    _results.push(filt[i] = max);
+  }
+  return _results;
 };
 
 exports.aggregateAdd = function(values, temp_filtered, _items, counter, _id, i) {
@@ -3519,7 +3590,7 @@ exports.aggregateAdd = function(values, temp_filtered, _items, counter, _id, i) 
     for (_j = 0, _len1 = _items.length; _j < _len1; _j++) {
       it = _items[_j];
       if (it[_id] === filt['_id'] && _.include(sum_key, '$')) {
-        sum += it[sum_key.replace('$', '')];
+        sum += exports.processOperation(it, sum_key);
       }
     }
     _results.push(filt[i] = sum);
@@ -3538,7 +3609,7 @@ exports.aggregateAvg = function(values, temp_filtered, _items, counter, _id, i) 
     for (_j = 0, _len1 = _items.length; _j < _len1; _j++) {
       it = _items[_j];
       if (it[_id] === filt['_id'] && _.include(sum_key, '$')) {
-        sum += it[sum_key.replace('$', '')];
+        sum += exports.processOperation(it, sum_key);
         length += 1;
       }
     }
@@ -3571,7 +3642,7 @@ exports.aggregateSort = function(selector, filtered) {
 };
 
 exports.aggregateProject = function(selector, filtered) {
-  var filt, k, keep, key, keys, _i, _j, _k, _len, _len1, _len2, _temp_filtered;
+  var filt, k, keep, key, keys, temp, _i, _j, _k, _len, _len1, _len2, _temp_filtered;
   keys = Object.keys(selector['$project']);
   keep = [];
   for (_i = 0, _len = keys.length; _i < _len; _i++) {
@@ -3580,16 +3651,23 @@ exports.aggregateProject = function(selector, filtered) {
       keep.push(k);
     }
   }
+  if (selector['$project']['_id']) {
+    keep.push('_id');
+  }
   _temp_filtered = [];
   for (_j = 0, _len1 = filtered.length; _j < _len1; _j++) {
     filt = filtered[_j];
+    temp = {};
     for (_k = 0, _len2 = keep.length; _k < _len2; _k++) {
       key = keep[_k];
-      if (filt[key.replace('$', '')]) {
-        filt = _.pick(filt, key.replace('$', ''));
+      if (!filt[key] && !filt[key.replace('$', '')]) {
+        k = key.split('.');
+        temp['$' + key] = filt[k[0]];
+      } else if (filt[key.replace('$', '')]) {
+        temp[key.replace('$', '')] = filt[key.replace('$', '')];
       }
     }
-    _temp_filtered.push(filt);
+    _temp_filtered.push(temp);
   }
   return filtered = _temp_filtered;
 };
@@ -3601,6 +3679,9 @@ exports.processAggregate = function(items, selector, options) {
   if (selector['$match']) {
     filtered = _.filter(filtered, compileDocumentSelector(selector['$match']));
   }
+  if (selector['$project']) {
+    filtered = exports.aggregateProject(selector, filtered);
+  }
   if (selector['$group']) {
     filtered = exports.aggregateGroup(filtered, items, selector, options);
   }
@@ -3609,9 +3690,6 @@ exports.processAggregate = function(items, selector, options) {
   }
   if (selector['$sort']) {
     filtered = exports.aggregateSort(selector, filtered);
-  }
-  if (selector['$project']) {
-    filtered = exports.aggregateProject(selector, filtered);
   }
   if (selector['$skip']) {
     filtered.splice(0, selector['$skip']);
