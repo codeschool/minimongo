@@ -701,6 +701,25 @@ module.exports = ->
       @reset =>
         done()
     
+    it 'runs order correctly with $limit then $match', (done) ->
+      item = @col.insert { name: 'jack', status: 'awesome', age: 20, car: {'make': 1} }
+      item = @col.insert { name: 'jack', status: 'awesome', age: 2, car: {'make': 11} }
+      item = @col.insert { name: 'bob', status: 'ok', age: 2 , car: {'make': 12}}
+      item = @col.insert { name: 'sam', status: 'eh', age: 12 , car: {'make': 22}}
+      results = @col.aggregate([{$limit: 1}, $match: {age: {$gte: 10}}])
+      assert.equal results[0].name, 'jack'
+      assert.equal results[1], undefined
+      done()
+
+    it 'returns nothing if limit greater than what is available', (done) ->
+      item = @col.insert { name: 'jack', status: 'awesome', age: 2, car: {'make': 1} }
+      item = @col.insert { name: 'jack', status: 'awesome', age: 20, car: {'make': 11} }
+      item = @col.insert { name: 'bob', status: 'ok', age: 2 , car: {'make': 12}}
+      item = @col.insert { name: 'sam', status: 'eh', age: 12 , car: {'make': 22}}
+      results = @col.aggregate([{$limit: 1}, $match: {age: {$gte: 10}}])
+      assert.equal results[0], undefined
+      done()
+
     it 'runs $match, $project, $group, $sort then limit with $max', (done) ->
       item = @col.insert { name: 'jack', status: 'awesome', age: 20, car: {'make': 1} }
       item = @col.insert { name: 'jack', status: 'awesome', age: 20, car: {'make': 11} }

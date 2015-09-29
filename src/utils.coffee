@@ -499,19 +499,19 @@ exports.processAggregate = (items, selector, options) ->
   filtered = _.values(items)
 
   selector = exports.convertToObject(selector)
-  
-  if selector['$match']
-    filtered = _.filter(filtered, compileDocumentSelector(selector['$match']))
-  if selector['$project']
-    filtered = exports.aggregateProject(selector, filtered)
-  if selector['$group']
-    filtered = exports.aggregateGroup(filtered, items, selector, options)
-  if selector['$limit']
-    filtered = filtered.slice(0, selector['$limit'])
-  if selector['$sort']
-    filtered = exports.aggregateSort(selector, filtered)
-  if selector['$skip']
-    filtered.splice(0, selector['$skip'])
+  for key in _.keys(selector)
+    if key == '$match'
+      filtered = _.filter(filtered, compileDocumentSelector(selector['$match']))
+    if key == '$project'
+      filtered = exports.aggregateProject(selector, filtered)
+    if key == '$group'
+      filtered = exports.aggregateGroup(filtered, items, selector, options)
+    if key == '$limit'
+      filtered = filtered.slice(0, selector['$limit'])
+    if key == '$sort'
+      filtered = exports.aggregateSort(selector, filtered)
+    if key == '$skip'
+      filtered.splice(0, selector['$skip'])
   return filtered
 
 

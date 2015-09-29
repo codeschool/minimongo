@@ -3673,26 +3673,30 @@ exports.aggregateProject = function(selector, filtered) {
 };
 
 exports.processAggregate = function(items, selector, options) {
-  var filtered;
+  var filtered, key, _i, _len, _ref;
   filtered = _.values(items);
   selector = exports.convertToObject(selector);
-  if (selector['$match']) {
-    filtered = _.filter(filtered, compileDocumentSelector(selector['$match']));
-  }
-  if (selector['$project']) {
-    filtered = exports.aggregateProject(selector, filtered);
-  }
-  if (selector['$group']) {
-    filtered = exports.aggregateGroup(filtered, items, selector, options);
-  }
-  if (selector['$limit']) {
-    filtered = filtered.slice(0, selector['$limit']);
-  }
-  if (selector['$sort']) {
-    filtered = exports.aggregateSort(selector, filtered);
-  }
-  if (selector['$skip']) {
-    filtered.splice(0, selector['$skip']);
+  _ref = _.keys(selector);
+  for (_i = 0, _len = _ref.length; _i < _len; _i++) {
+    key = _ref[_i];
+    if (key === '$match') {
+      filtered = _.filter(filtered, compileDocumentSelector(selector['$match']));
+    }
+    if (key === '$project') {
+      filtered = exports.aggregateProject(selector, filtered);
+    }
+    if (key === '$group') {
+      filtered = exports.aggregateGroup(filtered, items, selector, options);
+    }
+    if (key === '$limit') {
+      filtered = filtered.slice(0, selector['$limit']);
+    }
+    if (key === '$sort') {
+      filtered = exports.aggregateSort(selector, filtered);
+    }
+    if (key === '$skip') {
+      filtered.splice(0, selector['$skip']);
+    }
   }
   return filtered;
 };
