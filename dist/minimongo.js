@@ -3529,8 +3529,14 @@ exports.aggregateGroup = function(filtered, items, selector, options) {
 };
 
 exports.compileDollar = function(item, value) {
+  var k;
   if (_.include(value, '$')) {
-    return item[value.replace('$', '')];
+    if (_.include(value, '.')) {
+      k = value.replace('$', '').split('.');
+      return item[k[0]][k[1]];
+    } else {
+      return item[value.replace('$', '')];
+    }
   } else {
     return value;
   }
@@ -3538,13 +3544,17 @@ exports.compileDollar = function(item, value) {
 
 exports.processOperation = function(it, sum_key) {
   var k, parts, val;
-  if (_.include(sum_key, '.')) {
+  if (typeof sum_key === 'number') {
+    return sum_key;
+  } else if (_.include(sum_key, '.')) {
     parts = sum_key.replace('$', '').split('.');
     if (it[parts[0]]) {
       val = it[parts[0]][parts[1]];
     } else {
       return null;
     }
+  } else if (!_.include(sum_key, '$')) {
+    0;
   } else {
     val = it[sum_key.replace('$', '')] || it[sum_key];
   }
@@ -3566,7 +3576,7 @@ exports.aggregateMax = function(values, temp_filtered, _items, counter, _id, i) 
     max = 0;
     for (_j = 0, _len1 = _items.length; _j < _len1; _j++) {
       it = _items[_j];
-      if (_id === filt['_id'] || (it[_id] === filt['_id'] && _.include(sum_key, '$'))) {
+      if (exports.checkIfMatch(filt, it, _id, sum_key)) {
         if (max < exports.processOperation(it, sum_key)) {
           max = exports.processOperation(it, sum_key);
         }
@@ -3587,7 +3597,7 @@ exports.aggregateMin = function(values, temp_filtered, _items, counter, _id, i) 
     max = null;
     for (_j = 0, _len1 = _items.length; _j < _len1; _j++) {
       it = _items[_j];
-      if (_id === filt['_id'] || (it[_id] === filt['_id'] && _.include(sum_key, '$'))) {
+      if (exports.checkIfMatch(filt, it, _id, sum_key)) {
         if (!max) {
           max = exports.processOperation(it, sum_key);
         }
@@ -3611,7 +3621,7 @@ exports.aggregateAdd = function(values, temp_filtered, _items, counter, _id, i) 
     sum = 0;
     for (_j = 0, _len1 = _items.length; _j < _len1; _j++) {
       it = _items[_j];
-      if (_id === filt['_id'] || (it[_id] === filt['_id'] && _.include(sum_key, '$'))) {
+      if (exports.checkIfMatch(filt, it, _id, sum_key)) {
         sum += exports.processOperation(it, sum_key);
       }
     }
@@ -3630,7 +3640,7 @@ exports.aggregateAvg = function(values, temp_filtered, _items, counter, _id, i) 
     length = 0;
     for (_j = 0, _len1 = _items.length; _j < _len1; _j++) {
       it = _items[_j];
-      if (_id === filt['_id'] || (it[_id] === filt['_id'] && _.include(sum_key, '$'))) {
+      if (exports.checkIfMatch(filt, it, _id, sum_key)) {
         sum += exports.processOperation(it, sum_key);
         length += 1;
       }
@@ -3661,6 +3671,10 @@ exports.aggregateSort = function(selector, filtered) {
     filtered = filtered.reverse();
   }
   return filtered;
+};
+
+exports.checkIfMatch = function(filt, it, _id, sum_key) {
+  return filt['_id'] === exports.processOperation(it, _id) || _id === filt['_id'] || (it[_id] === filt['_id'] && (typeof sum_key === 'number' || _.include(sum_key, '$')));
 };
 
 exports.aggregateProject = function(selector, filtered) {

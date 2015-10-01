@@ -371,7 +371,6 @@ exports.aggregateGroup = (filtered, items, selector, options) ->
   keys = _.keys(selector['$group'])
   values  = _.values(selector['$group'])
   _id = null
-
   # throw if no _id
   if !_.include(keys, '_id')
     throw {message: '_id field was not supplied'}
@@ -405,19 +404,27 @@ exports.aggregateGroup = (filtered, items, selector, options) ->
 
 exports.compileDollar = (item, value) ->
   if _.include value, '$'
-    item[value.replace('$', '')]
+    if _.include value, '.'
+      k = value.replace('$', '').split('.')
+      item[k[0]][k[1]]
+    else
+      item[value.replace('$', '')]
   else
     value
 
 
 
 exports.processOperation = (it, sum_key) ->
-  if _.include(sum_key, '.')
+  if typeof sum_key == 'number'
+    return sum_key
+  else if _.include(sum_key, '.')
     parts = sum_key.replace('$', '').split('.')
     if it[parts[0]]
       val = it[parts[0]][parts[1]]
     else
       return null
+  else if !_.include(sum_key, '$')
+    0
   else
     val = it[sum_key.replace('$', '')] || it[sum_key]
   if typeof val == 'object'
@@ -432,7 +439,7 @@ exports.aggregateMax = (values, temp_filtered, _items, counter, _id, i) ->
   for filt in temp_filtered
     max = 0
     for it in _items
-      if _id == filt['_id'] or (it[_id] == filt['_id'] and _.include(sum_key, '$'))
+      if exports.checkIfMatch(filt, it, _id, sum_key)
         if max < exports.processOperation(it, sum_key)
           max = exports.processOperation(it, sum_key)
     filt[i] = max
@@ -443,20 +450,19 @@ exports.aggregateMin = (values, temp_filtered, _items, counter, _id, i) ->
   for filt in temp_filtered
     max = null
     for it in _items
-      if _id == filt['_id'] or (it[_id] == filt['_id'] and _.include(sum_key, '$'))
+      if exports.checkIfMatch(filt, it, _id, sum_key)
         if !max then max = exports.processOperation(it, sum_key)
         if max > exports.processOperation(it, sum_key)
           max = exports.processOperation(it, sum_key)
     filt[i] = max
 
 exports.aggregateAdd = (values, temp_filtered, _items, counter, _id, i) ->
-  # sum operation done here - need to make this dynamic
   opt_keys = Object.keys(values[counter])
   sum_key = values[counter][opt_keys]
   for filt in temp_filtered
     sum = 0
     for it in _items
-      if _id == filt['_id'] or (it[_id] == filt['_id'] and _.include(sum_key, '$'))
+      if exports.checkIfMatch(filt, it, _id, sum_key)
         sum += exports.processOperation(it, sum_key)
     filt[i] = sum
 
@@ -467,7 +473,7 @@ exports.aggregateAvg = (values, temp_filtered, _items, counter, _id, i) ->
     sum = 0
     length = 0
     for it in _items
-      if _id == filt['_id'] or (it[_id] == filt['_id'] and _.include(sum_key, '$'))
+      if exports.checkIfMatch(filt, it, _id, sum_key)
         sum += exports.processOperation(it, sum_key)
         length += 1
     #ensure no divide by zero
@@ -489,6 +495,10 @@ exports.aggregateSort = (selector, filtered) ->
   if direction < 0
     filtered = filtered.reverse()
   filtered
+
+exports.checkIfMatch = (filt, it, _id, sum_key) ->
+  filt['_id'] == exports.processOperation(it, _id) || _id == filt['_id'] or (it[_id] == filt['_id'] and (typeof sum_key == 'number' || _.include(sum_key, '$')))
+
 
 exports.aggregateProject = (selector, filtered) ->
   keys = Object.keys(selector['$project'])

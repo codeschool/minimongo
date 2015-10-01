@@ -700,6 +700,65 @@ module.exports = ->
       @reset =>
         done()
     
+    it 'aggregate $sum to variable ', (done) ->
+      item = @col.insert { name: 'jack', status: 'awesome', age: 20, car: {'make': 12} }
+      item = @col.insert { name: 'jack', status: 'awesome', age: 2, car: {'make': 12} }
+      item = @col.insert { name: 'bob', status: 'ok', age: 2 , car: {'make': 22}}
+      item = @col.insert { name: 'sam', status: 'eh', age: 12 , car: {'make': 4}}
+      results = @col.aggregate({$group: {_id: '$name', max: {$sum: 1}}})
+      assert.equal results[0]._id, 'jack'
+      assert.equal results[0].max, 2
+      done()
+
+    it 'can group _id of nested doc and get $sum', (done) ->
+      item = @col.insert { name: 'jack', status: 'awesome', age: 20, car: {'make': 12} }
+      item = @col.insert { name: 'jack', status: 'awesome', age: 2, car: {'make': 12} }
+      item = @col.insert { name: 'bob', status: 'ok', age: 2 , car: {'make': 22}}
+      item = @col.insert { name: 'sam', status: 'eh', age: 12 , car: {'make': 4}}
+      results = @col.aggregate({$group: {_id: '$car.make', max: {$sum: 1}}})
+      assert.equal results[0]._id, 12
+      assert.equal results[0].max, 2
+      done()
+
+    it 'can group _id of nested doc and get $max', (done) ->
+      item = @col.insert { name: 'jack', status: 'awesome', age: 20, car: {'make': 12} }
+      item = @col.insert { name: 'jack', status: 'awesome', age: 2, car: {'make': 12} }
+      item = @col.insert { name: 'bob', status: 'ok', age: 2 , car: {'make': 22}}
+      item = @col.insert { name: 'sam', status: 'eh', age: 12 , car: {'make': 4}}
+      results = @col.aggregate({$group: {_id: '$car.make', max: {$max: 1}}})
+      assert.equal results[0]._id, 12
+      assert.equal results[0].max, 1
+      done()
+
+    it 'can group _id of nested doc and get $min', (done) ->
+      item = @col.insert { name: 'jack', status: 'awesome', age: 20, car: {'make': 12} }
+      item = @col.insert { name: 'jack', status: 'awesome', age: 2, car: {'make': 12} }
+      item = @col.insert { name: 'bob', status: 'ok', age: 2 , car: {'make': 22}}
+      item = @col.insert { name: 'sam', status: 'eh', age: 12 , car: {'make': 4}}
+      results = @col.aggregate({$group: {_id: '$car.make', max: {$min: 1}}})
+      assert.equal results[0]._id, 12
+      assert.equal results[0].max, 1
+      done()
+
+    it 'can group _id of nested doc and get $avg', (done) ->
+      item = @col.insert { name: 'jack', status: 'awesome', age: 20, car: {'make': 12} }
+      item = @col.insert { name: 'jack', status: 'awesome', age: 2, car: {'make': 12} }
+      item = @col.insert { name: 'bob', status: 'ok', age: 2 , car: {'make': 22}}
+      item = @col.insert { name: 'sam', status: 'eh', age: 12 , car: {'make': 4}}
+      results = @col.aggregate({$group: {_id: '$car.make', max: {$avg: 1}}})
+      assert.equal results[0]._id, 12
+      assert.equal results[0].max, 1
+      done()
+
+    it 'can group _id of nested doc', (done) ->
+      item = @col.insert { name: 'jack', status: 'awesome', age: 20, car: {'make': 'honda'} }
+      item = @col.insert { name: 'jack', status: 'awesome', age: 2, car: {'make': 'ford'} }
+      item = @col.insert { name: 'bob', status: 'ok', age: 2 , car: {'make': 'toyota'}}
+      item = @col.insert { name: 'sam', status: 'eh', age: 12 , car: {'make': 'nissan'}}
+      results = @col.aggregate({$group: {_id: '$car.make'}})
+      assert.equal results[0]._id, 'honda'
+      done()
+
     it 'aggregates without array and single object', (done) ->
       item = @col.insert { name: 'jack', status: 'awesome', age: 20, car: {'make': 1} }
       item = @col.insert { name: 'jack', status: 'awesome', age: 2, car: {'make': 11} }
@@ -881,7 +940,7 @@ module.exports = ->
       item = @col.insert { name: 'bob', status: 'ok', age: 12 }
       results = @col.aggregate([{$group: {_id: '$name', total: {$sum: 'age'}}}])
       assert.equal results[0]['total'], 0
-      assert.equal results[1]['total'], 0 
+      assert.equal results[1]['total'], 0
       assert.equal results.length, 2
       done()
 
