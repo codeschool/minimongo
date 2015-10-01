@@ -710,7 +710,7 @@ module.exports = ->
       assert.equal results[0].total, 0
       done()
 
-    it.only 'handles aggregation with project only value false', (done) ->
+    it 'handles aggregation with project only value false', (done) ->
       item = @col.insert { name: 'jack', status: 'awesome', age: 20, car: {'make': 1} }
       item = @col.insert { name: 'jack', status: 'awesome', age: 2, car: {'make': 11} }
       item = @col.insert { name: 'bob', status: 'ok', age: 2 , car: {'make': 12}}
