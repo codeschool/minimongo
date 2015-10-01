@@ -378,7 +378,7 @@ exports.aggregateGroup = (filtered, items, selector, options) ->
       if typeof values[counter] == 'string'
         if i == '_id'
           _id = values[counter].replace('$', '')
-        h[i] = item[values[counter].replace('$', '')]
+        h[i] = exports.compileDollar(item, values[counter])
         taken = false
         for _filter in temp_filtered
           if _.include(_.values(_filter), h._id)
@@ -398,8 +398,23 @@ exports.aggregateGroup = (filtered, items, selector, options) ->
       counter += 1
   filtered = temp_filtered
 
+exports.compileDollar = (item, value) ->
+  if _.include value, '$'
+    item[value.replace('$', '')]
+  else
+    value
+
+
+
 exports.processOperation = (it, sum_key) ->
-  val = it[sum_key.replace('$', '')] || it[sum_key]
+  if _.include(sum_key, '.')
+    parts = sum_key.replace('$', '').split('.')
+    if it[parts[0]]
+      val = it[parts[0]][parts[1]]
+    else
+      return null
+  else
+    val = it[sum_key.replace('$', '')] || it[sum_key]
   if typeof val == 'object'
     k = sum_key.replace('$', '').split('.')
     return it[sum_key][k[1]]
@@ -412,7 +427,7 @@ exports.aggregateMax = (values, temp_filtered, _items, counter, _id, i) ->
   for filt in temp_filtered
     max = 0
     for it in _items
-      if it[_id] == filt['_id'] and _.include(sum_key, '$')
+      if _id == filt['_id'] or (it[_id] == filt['_id'] and _.include(sum_key, '$'))
         if max < exports.processOperation(it, sum_key)
           max = exports.processOperation(it, sum_key)
     filt[i] = max
@@ -423,7 +438,7 @@ exports.aggregateMin = (values, temp_filtered, _items, counter, _id, i) ->
   for filt in temp_filtered
     max = null
     for it in _items
-      if it[_id] == filt['_id'] and _.include(sum_key, '$')
+      if _id == filt['_id'] or (it[_id] == filt['_id'] and _.include(sum_key, '$'))
         if !max then max = exports.processOperation(it, sum_key)
         if max > exports.processOperation(it, sum_key)
           max = exports.processOperation(it, sum_key)
@@ -436,7 +451,7 @@ exports.aggregateAdd = (values, temp_filtered, _items, counter, _id, i) ->
   for filt in temp_filtered
     sum = 0
     for it in _items
-      if it[_id] == filt['_id'] and _.include(sum_key, '$')
+      if _id == filt['_id'] or (it[_id] == filt['_id'] and _.include(sum_key, '$'))
         sum += exports.processOperation(it, sum_key)
     filt[i] = sum
 
@@ -447,7 +462,7 @@ exports.aggregateAvg = (values, temp_filtered, _items, counter, _id, i) ->
     sum = 0
     length = 0
     for it in _items
-      if it[_id] == filt['_id'] and _.include(sum_key, '$')
+      if _id == filt['_id'] or (it[_id] == filt['_id'] and _.include(sum_key, '$'))
         sum += exports.processOperation(it, sum_key)
         length += 1
     #ensure no divide by zero
@@ -488,7 +503,7 @@ exports.aggregateProject = (selector, filtered) ->
     for key in keep
       if !filt[key] and !filt[key.replace('$', '')]
         k = key.split('.')
-        temp['$'+key] = filt[k[0]]
+        temp[k[0]] = filt[k[0]]
       else if filt[key.replace('$', '')]
         temp[key.replace('$', '')] = filt[key.replace('$', '')]
     _temp_filtered.push temp

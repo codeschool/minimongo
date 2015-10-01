@@ -464,7 +464,6 @@ module.exports = ->
       item = @col.insert { name: 'dan', car: ['honda', 'ford'], age: 12}
       item = @col.update {name: 'danxx'}, { $inc: {age: 2}}, {upsert: true}
       results = @col.find({name: 'danxx'})
-      debugger
       assert.equal results[0].age, 2
       done()
   
@@ -701,6 +700,26 @@ module.exports = ->
       @reset =>
         done()
     
+    it 'sets $ defined to null if not found from $project', (done) ->
+      item = @col.insert { name: 'jack', status: 'awesome', age: 20, car: {'make': 1} }
+      item = @col.insert { name: 'jack', status: 'awesome', age: 2, car: {'make': 11} }
+      item = @col.insert { name: 'bob', status: 'ok', age: 2 , car: {'make': 12}}
+      item = @col.insert { name: 'sam', status: 'eh', age: 12 , car: {'make': 22}}
+      results = @col.aggregate([{$match: {age: {$gte: 10}}}, {$project: {"name": true}}, {$group: {_id: 'name', total: {$max: '$car.make'}}}])
+      assert.equal results[0]._id, 'name'
+      assert.equal results[0].total, 0
+      done()
+
+    it.only 'handles aggregation with project only value false', (done) ->
+      item = @col.insert { name: 'jack', status: 'awesome', age: 20, car: {'make': 1} }
+      item = @col.insert { name: 'jack', status: 'awesome', age: 2, car: {'make': 11} }
+      item = @col.insert { name: 'bob', status: 'ok', age: 2 , car: {'make': 12}}
+      item = @col.insert { name: 'sam', status: 'eh', age: 12 , car: {'make': 22}}
+      results = @col.aggregate([{$match: {age: {$gte: 10}}}, {$project: {"name": false}}, {$group: {_id: 'name', total: {$max: '$car.make'}}}])
+      assert.equal results[0]._id, 'name'
+      assert.equal results[0].total, 0
+      done()
+
     it 'runs order correctly with $limit then $match', (done) ->
       item = @col.insert { name: 'jack', status: 'awesome', age: 20, car: {'make': 1} }
       item = @col.insert { name: 'jack', status: 'awesome', age: 2, car: {'make': 11} }
@@ -730,6 +749,36 @@ module.exports = ->
       assert.equal results[0].total, 11
       assert.equal results[1]._id, 'sam'
       assert.equal results[1].total, 22
+      done()
+
+    it 'groups by field name without $ and $max', (done) ->
+      item = @col.insert { name: 'jack', status: 'awesome', age: 20, car: {'make': 1} }
+      item = @col.insert { name: 'jack', status: 'awesome', age: 20, car: {'make': 11} }
+      item = @col.insert { name: 'bob', status: 'ok', age: 2 , car: {'make': 12}}
+      item = @col.insert { name: 'sam', status: 'eh', age: 12 , car: {'make': 22}}
+      results = @col.aggregate([{$match: {age: {$gte: 10}}}, {$project: {"name": true, "car.make": true}}, {$group: {_id: 'name', total: {$max: '$car.make'}}}])
+      assert.equal results[0]._id, 'name'
+      assert.equal results[0].total, 22
+      done()
+
+    it 'groups by field name without $ and $min', (done) ->
+      item = @col.insert { name: 'jack', status: 'awesome', age: 20, car: {'make': 1} }
+      item = @col.insert { name: 'jack', status: 'awesome', age: 20, car: {'make': 11} }
+      item = @col.insert { name: 'bob', status: 'ok', age: 2 , car: {'make': 12}}
+      item = @col.insert { name: 'sam', status: 'eh', age: 12 , car: {'make': 22}}
+      results = @col.aggregate([{$match: {age: {$gte: 10}}}, {$project: {"name": true, "car.make": true}}, {$group: {_id: 'name', total: {$min: '$car.make'}}}])
+      assert.equal results[0]._id, 'name'
+      assert.equal results[0].total, 1
+      done()
+
+    it 'groups by field name without $ and $avg', (done) ->
+      item = @col.insert { name: 'jack', status: 'awesome', age: 20, car: {'make': 1} }
+      item = @col.insert { name: 'jack', status: 'awesome', age: 20, car: {'make': 11} }
+      item = @col.insert { name: 'bob', status: 'ok', age: 2 , car: {'make': 12}}
+      item = @col.insert { name: 'sam', status: 'eh', age: 12 , car: {'make': 22}}
+      results = @col.aggregate([{$match: {age: {$gte: 10}}}, {$project: {"name": true, "car.make": true}}, {$group: {_id: 'name', total: {$avg: '$car.make'}}}])
+      assert.equal results[0]._id, 'name'
+      assert.equal results[0].total, 11.333333333333334
       done()
 
     it 'runs $match, $project, $group, $sort then limit with $sum', (done) ->
