@@ -3482,6 +3482,11 @@ exports.aggregateGroup = function(filtered, items, selector, options) {
   keys = _.keys(selector['$group']);
   values = _.values(selector['$group']);
   _id = null;
+  if (!_.include(keys, '_id')) {
+    throw {
+      message: '_id field was not supplied'
+    };
+  }
   for (_i = 0, _len = _items.length; _i < _len; _i++) {
     item = _items[_i];
     h = {};
@@ -3690,29 +3695,30 @@ exports.aggregateProject = function(selector, filtered) {
 };
 
 exports.processAggregate = function(items, selector, options) {
-  var filtered, key, _i, _len, _ref;
+  var filtered, key, _i, _len;
+  if (!_.isArray(selector)) {
+    selector = [selector];
+  }
   filtered = _.values(items);
-  selector = exports.convertToObject(selector);
-  _ref = _.keys(selector);
-  for (_i = 0, _len = _ref.length; _i < _len; _i++) {
-    key = _ref[_i];
-    if (key === '$match') {
-      filtered = _.filter(filtered, compileDocumentSelector(selector['$match']));
+  for (_i = 0, _len = selector.length; _i < _len; _i++) {
+    key = selector[_i];
+    if (key['$match']) {
+      filtered = _.filter(filtered, compileDocumentSelector(key['$match']));
     }
-    if (key === '$project') {
-      filtered = exports.aggregateProject(selector, filtered);
+    if (key['$project']) {
+      filtered = exports.aggregateProject(key, filtered);
     }
-    if (key === '$group') {
-      filtered = exports.aggregateGroup(filtered, items, selector, options);
+    if (key['$group']) {
+      filtered = exports.aggregateGroup(filtered, items, key, options);
     }
-    if (key === '$limit') {
-      filtered = filtered.slice(0, selector['$limit']);
+    if (key['$limit']) {
+      filtered = filtered.slice(0, key['$limit']);
     }
-    if (key === '$sort') {
-      filtered = exports.aggregateSort(selector, filtered);
+    if (key['$sort']) {
+      filtered = exports.aggregateSort(key, filtered);
     }
-    if (key === '$skip') {
-      filtered.splice(0, selector['$skip']);
+    if (key['$skip']) {
+      filtered.splice(0, key['$skip']);
     }
   }
   return filtered;

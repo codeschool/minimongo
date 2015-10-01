@@ -371,6 +371,11 @@ exports.aggregateGroup = (filtered, items, selector, options) ->
   keys = _.keys(selector['$group'])
   values  = _.values(selector['$group'])
   _id = null
+
+  # throw if no _id
+  if !_.include(keys, '_id')
+    throw {message: '_id field was not supplied'}
+
   for item in _items
     h = {}
     counter = 0
@@ -511,22 +516,23 @@ exports.aggregateProject = (selector, filtered) ->
 
 
 exports.processAggregate = (items, selector, options) ->
+  if not _.isArray(selector)
+    selector = [selector]
   filtered = _.values(items)
 
-  selector = exports.convertToObject(selector)
-  for key in _.keys(selector)
-    if key == '$match'
-      filtered = _.filter(filtered, compileDocumentSelector(selector['$match']))
-    if key == '$project'
-      filtered = exports.aggregateProject(selector, filtered)
-    if key == '$group'
-      filtered = exports.aggregateGroup(filtered, items, selector, options)
-    if key == '$limit'
-      filtered = filtered.slice(0, selector['$limit'])
-    if key == '$sort'
-      filtered = exports.aggregateSort(selector, filtered)
-    if key == '$skip'
-      filtered.splice(0, selector['$skip'])
+  for key in selector
+    if key['$match']
+      filtered = _.filter(filtered, compileDocumentSelector(key['$match']))
+    if key['$project']
+      filtered = exports.aggregateProject(key, filtered)
+    if key['$group']
+      filtered = exports.aggregateGroup(filtered, items, key, options)
+    if key['$limit']
+      filtered = filtered.slice(0, key['$limit'])
+    if key['$sort']
+      filtered = exports.aggregateSort(key, filtered)
+    if key['$skip']
+      filtered.splice(0, key['$skip'])
   return filtered
 
 

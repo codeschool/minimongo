@@ -700,6 +700,30 @@ module.exports = ->
       @reset =>
         done()
     
+    it 'aggregates without array and single object', (done) ->
+      item = @col.insert { name: 'jack', status: 'awesome', age: 20, car: {'make': 1} }
+      item = @col.insert { name: 'jack', status: 'awesome', age: 2, car: {'make': 11} }
+      item = @col.insert { name: 'bob', status: 'ok', age: 2 , car: {'make': 12}}
+      item = @col.insert { name: 'sam', status: 'eh', age: 12 , car: {'make': 22}}
+      results = @col.aggregate({$group: {_id: '$name'}})
+      assert.equal results[0]._id, 'jack'
+      assert.equal results[0].status, undefined
+      assert.equal results[0].age, undefined
+      assert.equal results[0].car, undefined
+      assert.equal results[1]._id, 'bob'
+      assert.equal results[2]._id, 'sam'
+      done()
+
+    it 'throws error if $group without _id', (done) ->
+      item = @col.insert { name: 'jack', status: 'awesome', age: 20, car: {'make': 1} }
+      item = @col.insert { name: 'jack', status: 'awesome', age: 2, car: {'make': 11} }
+      item = @col.insert { name: 'bob', status: 'ok', age: 2 , car: {'make': 12}}
+      item = @col.insert { name: 'sam', status: 'eh', age: 12 , car: {'make': 22}}
+      expect(() =>
+        @col.aggregate([{$group: {name: '$age'}}])
+      ).to.throw '_id field was not supplied'
+      done()
+
     it 'sets $ defined to null if not found from $project', (done) ->
       item = @col.insert { name: 'jack', status: 'awesome', age: 20, car: {'make': 1} }
       item = @col.insert { name: 'jack', status: 'awesome', age: 2, car: {'make': 11} }
