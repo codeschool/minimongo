@@ -116,6 +116,18 @@ module.exports = ->
       assert.deepEqual results[0], { _id: "1",  a: "Alice" }
       done()
 
+    it 'it throws when sort value not -1 or 1', (done) ->
+      expect(() =>
+        results = @col.find().sort({a: 2})
+      ).to.throw 'BadValue bad sort specification'
+      done()
+
+    it 'sorts with {}', (done) ->
+      results = @col.find().sort({})
+      assert results.length > 0
+      done()
+
+
     it 'sorts by proper method asc', (done) ->
       results = @col.find().sort({a: 1})
       assert.equal results[0]._id, '1'

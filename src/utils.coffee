@@ -318,8 +318,12 @@ exports.processFind = (items, selector, options) ->
   filtered['sort'] = (options) ->
     direction = options[Object.keys(options)[0]]
     sorted = addMethods(_.sortBy me, Object.keys(options)[0])
-    if direction < 0
+    if direction == -1
       sorted = sorted.reverse()
+    else if direction == 1 or _.isEmpty(Object.keys(options))
+      sorted = sorted
+    else
+      throw {message: 'BadValue bad sort specification'}
     return sorted
 
   filtered['count'] = () ->
