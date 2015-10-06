@@ -712,6 +712,16 @@ module.exports = ->
       @reset =>
         done()
     
+    it 'throws without valid pipeline operator', (done) ->
+      item = @col.insert { name: 'jack', status: 'awesome', age: 20, car: {'make': 12} }
+      item = @col.insert { name: 'jack', status: 'awesome', age: 2, car: {'make': 12} }
+      item = @col.insert { name: 'bob', status: 'ok', age: 2 , car: {'make': 22}}
+      item = @col.insert { name: 'sam', status: 'eh', age: 12 , car: {'make': 4}}
+      expect(() =>
+        @col.aggregate({$xxx: {_id: '$name', max: {$sum: 1}}})
+      ).to.throw('This pipeline operator is not supported with this browser version of MongoDB')
+      done()
+
     it 'aggregate $sum to variable ', (done) ->
       item = @col.insert { name: 'jack', status: 'awesome', age: 20, car: {'make': 12} }
       item = @col.insert { name: 'jack', status: 'awesome', age: 2, car: {'make': 12} }

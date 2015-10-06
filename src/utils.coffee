@@ -535,6 +535,8 @@ exports.processAggregate = (items, selector, options) ->
   filtered = _.values(items)
 
   for key in selector
+    if _.intersection(['$match', '$project', '$group', '$limit', '$sort', '$skip'], Object.keys(key)).length < 1
+      throw {message: 'This pipeline operator is not supported with this browser version of MongoDB'}
     if key['$match']
       filtered = _.filter(filtered, compileDocumentSelector(key['$match']))
     if key['$project']
