@@ -3109,28 +3109,13 @@ isLocalStorageSupported = function() {
 exports.compileDocumentSelector = compileDocumentSelector;
 
 exports.autoselectLocalDb = function(options, success, error) {
-  var IndexedDb, LocalStorageDb, MemoryDb, WebSQLDb, browser;
-  IndexedDb = require('./IndexedDb');
-  WebSQLDb = require('./WebSQLDb');
-  LocalStorageDb = require('./LocalStorageDb');
+  var MemoryDb, browser;
   MemoryDb = require('./MemoryDb');
   browser = bowser.browser;
   return new MemoryDb(options, success);
 };
 
-exports.migrateLocalDb = function(fromDb, toDb, success, error) {
-  var HybridDb, col, hybridDb, name, _ref;
-  HybridDb = require('./HybridDb');
-  hybridDb = new HybridDb(fromDb, toDb);
-  _ref = fromDb.collections;
-  for (name in _ref) {
-    col = _ref[name];
-    if (toDb[name]) {
-      hybridDb.addCollection(name);
-    }
-  }
-  return hybridDb.upload(success, error);
-};
+exports.migrateLocalDb = function(fromDb, toDb, success, error) {};
 
 exports.processUpdate = function(theItems, selector, docs, bases, database) {
   var docUpdate, id, item, k, v, _i, _len, _ref, _ref1;
@@ -3949,7 +3934,7 @@ exports.regularizeUpsert = function(docs, bases, success, error) {
   return [items, success, error];
 };
 
-},{"./HybridDb":6,"./IndexedDb":7,"./LocalStorageDb":8,"./MemoryDb":9,"./WebSQLDb":11,"./selector":13,"async":17,"bowser":18,"lodash":"nJZoxB","sorted-object-array":21}],"lodash":[function(require,module,exports){
+},{"./MemoryDb":9,"./selector":13,"async":17,"bowser":18,"lodash":"nJZoxB","sorted-object-array":21}],"lodash":[function(require,module,exports){
 module.exports=require('nJZoxB');
 },{}],"nJZoxB":[function(require,module,exports){
 module.exports = window._;

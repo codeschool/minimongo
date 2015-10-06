@@ -25,9 +25,9 @@ exports.compileDocumentSelector = compileDocumentSelector
 # Select appropriate local database, prefering IndexedDb, then WebSQLDb, then LocalStorageDb, then MemoryDb
 exports.autoselectLocalDb = (options, success, error) ->
   # Here due to browserify circularity quirks
-  IndexedDb = require './IndexedDb'
-  WebSQLDb = require './WebSQLDb'
-  LocalStorageDb = require './LocalStorageDb'
+  # IndexedDb = require './IndexedDb'
+  # WebSQLDb = require './WebSQLDb'
+  # LocalStorageDb = require './LocalStorageDb'
   MemoryDb = require './MemoryDb'
 
   # Get browser capabilities
@@ -68,13 +68,13 @@ exports.autoselectLocalDb = (options, success, error) ->
 exports.migrateLocalDb = (fromDb, toDb, success, error) ->
   # Migrate collection using a HybridDb
   # Here due to browserify circularity quirks
-  HybridDb = require './HybridDb'
-  hybridDb = new HybridDb(fromDb, toDb)
-  for name, col of fromDb.collections
-    if toDb[name]
-      hybridDb.addCollection(name)
-
-  hybridDb.upload(success, error)
+#   HybridDb = require './HybridDb'
+#   hybridDb = new HybridDb(fromDb, toDb)
+#   for name, col of fromDb.collections
+#     if toDb[name]
+#       hybridDb.addCollection(name)
+#
+#   hybridDb.upload(success, error)
 
 exports.processUpdate = (theItems, selector, docs, bases, database) ->
 
