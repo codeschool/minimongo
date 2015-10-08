@@ -74,6 +74,8 @@ class Collection
     if success then success(docs)
 
   insert: (docs, bases, success, error) ->
+    if(_.isEmpty(docs) and typeof docs != 'object')
+      throw {message: "Error: no object passed to insert"}
     [items, success, error] = utils.regularizeUpsert(docs, bases, success, error)
 
     for item in items
@@ -90,8 +92,19 @@ class Collection
     return null
 
   update: (selector, docs, bases, success, error) ->
+    #throw if not all args
+    if(_.isEmpty(selector) and _.isEmpty(docs) and typeof selector != 'object' and typeof docs != 'object')
+      throw {message: "Error: no object passed to update"}
+    #return if empty objects
     theItems = processFind(@items, selector)
-    return utils.processUpdate(theItems, selector, docs, bases, this)
+    #keep track of found records for writeResult
+    me = this
+    _.map(_.keys(theItems), (key) ->
+      me.founds[theItems[key]._id] = docs
+    )
+
+    if(!_.isEmpty(docs))
+      return utils.processUpdate(theItems, selector, docs, bases, this)
 
   aggregate: (selectors...) ->
     remaining = []

@@ -77,7 +77,6 @@ exports.migrateLocalDb = (fromDb, toDb, success, error) ->
 #   hybridDb.upload(success, error)
 
 exports.processUpdate = (theItems, selector, docs, bases, database) ->
-
   if bases && bases['upsert'] && theItems.length < 1
     if _.include(Object.keys(docs), '$set')
       database.insert(_.merge(selector, docs['$set']))
@@ -101,9 +100,6 @@ exports.processUpdate = (theItems, selector, docs, bases, database) ->
     if item.base == undefined
       item.base = database.items[item.doc._id] or null
     item = _.cloneDeep(item)
-
-    #keep track of found records for writeResult
-    database.founds[item._id] = docs
 
     docUpdate = true
     if _.include(Object.keys(docs), "$inc")
@@ -141,7 +137,7 @@ exports.processUpdate = (theItems, selector, docs, bases, database) ->
       docUpdate = exports.update$push(database, docs, item)
 
     if docUpdate
-      database.updates[docs._id] = docs
+      database.updates[item._id] = docs
       for k,v of docs
         id = database.items[item._id]._id
         database.items[item._id] = docs

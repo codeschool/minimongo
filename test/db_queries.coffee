@@ -459,13 +459,38 @@ module.exports = ->
         @col.insert { _id: '123', a: "hello" }).to.throw 'Duplicate ID'
       done()
 
+    it 'throws if no first arg insert', (done) ->
+      expect(() =>
+        @col.insert()).to.throw 'Error: no object passed to insert'
+      done()
+
+    it 'does not throw if first arg empty object', (done) ->
+      expect(() =>
+        @col.insert({})).to.not.throw 'Error: no object passed to insert'
+      done()
+
 
     #update
+    it 'throws if no args update', (done) ->
+      expect(() =>
+        @col.update()).to.throw 'Error: no object passed to update'
+      done()
+
+    it 'does not throw if args both args are empty objects', (done) ->
+      expect(() =>
+        @col.update({}, {})).to.not.throw 'Error: no object passed to update'
+      done()
+
+    it 'does not count an update if empty passed in', (done) ->
+      @col.update({}, {})
+      assert.equal(Object.keys(@col.updates).length, 0)
+      done()
+
     it 'updates first record when selector is {}', (done) ->
       item = @col.insert { name: 'dan', car: ['honda', 'ford'], age: 12}
       item = @col.insert { name: 'dan', car: ['honda', 'ford'], age: 12}
       item = @col.insert { name: 'dan', car: ['honda', 'ford'], age: 12}
-      item = @col.update {}, { $inc: {age: 2}}
+      item = @col.update {}, {$inc: {age: 2}}
       results = @col.find()
       assert.equal results[0].age, 14
       assert.equal results[1].age, 12

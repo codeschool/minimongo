@@ -1515,6 +1515,11 @@ Collection = (function() {
 
   Collection.prototype.insert = function(docs, bases, success, error) {
     var item, items, _i, _len, _ref;
+    if (_.isEmpty(docs) && typeof docs !== 'object') {
+      throw {
+        message: "Error: no object passed to insert"
+      };
+    }
     _ref = utils.regularizeUpsert(docs, bases, success, error), items = _ref[0], success = _ref[1], error = _ref[2];
     for (_i = 0, _len = items.length; _i < _len; _i++) {
       item = items[_i];
@@ -1532,9 +1537,20 @@ Collection = (function() {
   };
 
   Collection.prototype.update = function(selector, docs, bases, success, error) {
-    var theItems;
+    var me, theItems;
+    if (_.isEmpty(selector) && _.isEmpty(docs) && typeof selector !== 'object' && typeof docs !== 'object') {
+      throw {
+        message: "Error: no object passed to update"
+      };
+    }
     theItems = processFind(this.items, selector);
-    return utils.processUpdate(theItems, selector, docs, bases, this);
+    me = this;
+    _.map(_.keys(theItems), function(key) {
+      return me.founds[theItems[key]._id] = docs;
+    });
+    if (!_.isEmpty(docs)) {
+      return utils.processUpdate(theItems, selector, docs, bases, this);
+    }
   };
 
   Collection.prototype.aggregate = function() {
@@ -3143,7 +3159,6 @@ exports.processUpdate = function(theItems, selector, docs, bases, database) {
       item.base = database.items[item.doc._id] || null;
     }
     item = _.cloneDeep(item);
-    database.founds[item._id] = docs;
     docUpdate = true;
     if (_.include(Object.keys(docs), "$inc")) {
       docUpdate = false;
@@ -3186,7 +3201,7 @@ exports.processUpdate = function(theItems, selector, docs, bases, database) {
       docUpdate = exports.update$push(database, docs, item);
     }
     if (docUpdate) {
-      database.updates[docs._id] = docs;
+      database.updates[item._id] = docs;
       for (k in docs) {
         v = docs[k];
         id = database.items[item._id]._id;
