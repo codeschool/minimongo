@@ -3515,6 +3515,13 @@ exports.aggregateGroup = function(filtered, items, selector, options) {
           temp_filtered.push(h);
         }
       } else {
+        if (typeof values[counter] !== 'object') {
+          return [
+            {
+              _id: values[counter]
+            }
+          ];
+        }
         operation = Object.keys(values[counter])[0];
         if (operation === '$max') {
           exports.aggregateMax(values, temp_filtered, _items, counter, _id, i);

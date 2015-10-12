@@ -737,6 +737,15 @@ module.exports = ->
       @reset =>
         done()
     
+    it 'returns _id: <item> when not objected passed into $group', (done) ->
+      item = @col.insert { name: 'jack', status: 'awesome', age: 20, car: {'make': 12} }
+      item = @col.insert { name: 'jack', status: 'awesome', age: 2, car: {'make': 12} }
+      item = @col.insert { name: 'bob', status: 'ok', age: 2 , car: {'make': 22}}
+      item = @col.insert { name: 'sam', status: 'eh', age: 12 , car: {'make': 4}}
+      result = @col.aggregate({$group: {_id: 1}})
+      assert.equal result[0]._id, 1
+      done()
+
     it 'throws without valid pipeline operator', (done) ->
       item = @col.insert { name: 'jack', status: 'awesome', age: 20, car: {'make': 12} }
       item = @col.insert { name: 'jack', status: 'awesome', age: 2, car: {'make': 12} }

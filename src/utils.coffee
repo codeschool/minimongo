@@ -390,6 +390,10 @@ exports.aggregateGroup = (filtered, items, selector, options) ->
         if !taken
           temp_filtered.push h
       else
+        # ie needs Object.keys to pass so ensure an object
+        if typeof values[counter] != 'object'
+          return [{_id: values[counter]}]
+
         operation = Object.keys(values[counter])[0]
         if operation == '$max'
           exports.aggregateMax(values, temp_filtered, _items, counter, _id, i)
