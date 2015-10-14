@@ -528,6 +528,12 @@ exports.aggregateProject = (selector, filtered) ->
     _temp_filtered.push temp
   filtered = _temp_filtered
 
+exports.throwPipelineOperators = (key) ->
+  if _.intersection(['$match', '$project', '$group', '$limit', '$sort', '$skip'], Object.keys(key)).length < 1
+    if _.intersection(['match', 'project', 'group', 'limit', 'sort', 'skip'], Object.keys(key)).length > 0
+      throw {message: "The pipeline operator #{Object.keys(key)[0]} requires a $ in front."}
+    else
+      throw {message: 'This pipeline operator is not supported with this browser version of MongoDB'}
 
 exports.processAggregate = (items, selector, options) ->
   if not _.isArray(selector)
@@ -535,8 +541,7 @@ exports.processAggregate = (items, selector, options) ->
   filtered = _.values(items)
 
   for key in selector
-    if _.intersection(['$match', '$project', '$group', '$limit', '$sort', '$skip'], Object.keys(key)).length < 1
-      throw {message: 'This pipeline operator is not supported with this browser version of MongoDB'}
+    exports.throwPipelineOperators(key)
     if key['$match']
       filtered = _.filter(filtered, compileDocumentSelector(key['$match']))
     if key['$project']

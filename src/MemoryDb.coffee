@@ -74,7 +74,7 @@ class Collection
     if success then success(docs)
 
   insert: (docs, bases, success, error) ->
-    if(_.isEmpty(docs) and typeof docs != 'object')
+    if((_.isEmpty(docs) and typeof docs != 'object') or typeof docs == 'string')
       throw {message: "Error: no object passed to insert"}
     [items, success, error] = utils.regularizeUpsert(docs, bases, success, error)
 

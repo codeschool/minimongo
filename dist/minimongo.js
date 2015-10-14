@@ -1515,7 +1515,7 @@ Collection = (function() {
 
   Collection.prototype.insert = function(docs, bases, success, error) {
     var item, items, _i, _len, _ref;
-    if (_.isEmpty(docs) && typeof docs !== 'object') {
+    if ((_.isEmpty(docs) && typeof docs !== 'object') || typeof docs === 'string') {
       throw {
         message: "Error: no object passed to insert"
       };
@@ -3721,6 +3721,20 @@ exports.aggregateProject = function(selector, filtered) {
   return filtered = _temp_filtered;
 };
 
+exports.throwPipelineOperators = function(key) {
+  if (_.intersection(['$match', '$project', '$group', '$limit', '$sort', '$skip'], Object.keys(key)).length < 1) {
+    if (_.intersection(['match', 'project', 'group', 'limit', 'sort', 'skip'], Object.keys(key)).length > 0) {
+      throw {
+        message: "The pipeline operator " + (Object.keys(key)[0]) + " requires a $ in front."
+      };
+    } else {
+      throw {
+        message: 'This pipeline operator is not supported with this browser version of MongoDB'
+      };
+    }
+  }
+};
+
 exports.processAggregate = function(items, selector, options) {
   var filtered, key, _i, _len;
   if (!_.isArray(selector)) {
@@ -3729,11 +3743,7 @@ exports.processAggregate = function(items, selector, options) {
   filtered = _.values(items);
   for (_i = 0, _len = selector.length; _i < _len; _i++) {
     key = selector[_i];
-    if (_.intersection(['$match', '$project', '$group', '$limit', '$sort', '$skip'], Object.keys(key)).length < 1) {
-      throw {
-        message: 'This pipeline operator is not supported with this browser version of MongoDB'
-      };
-    }
+    exports.throwPipelineOperators(key);
     if (key['$match']) {
       filtered = _.filter(filtered, compileDocumentSelector(key['$match']));
     }

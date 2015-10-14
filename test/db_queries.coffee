@@ -746,6 +746,16 @@ module.exports = ->
       assert.equal result[0]._id, 1
       done()
 
+    it 'throws without $ pipeline operator', (done) ->
+      item = @col.insert { name: 'jack', status: 'awesome', age: 20, car: {'make': 12} }
+      item = @col.insert { name: 'jack', status: 'awesome', age: 2, car: {'make': 12} }
+      item = @col.insert { name: 'bob', status: 'ok', age: 2 , car: {'make': 22}}
+      item = @col.insert { name: 'sam', status: 'eh', age: 12 , car: {'make': 4}}
+      expect(() =>
+        @col.aggregate({group: {_id: '$name', max: {$sum: 1}}})
+      ).to.throw('The pipeline operator group requires a $ in front.')
+      done()
+
     it 'throws without valid pipeline operator', (done) ->
       item = @col.insert { name: 'jack', status: 'awesome', age: 20, car: {'make': 12} }
       item = @col.insert { name: 'jack', status: 'awesome', age: 2, car: {'make': 12} }
@@ -754,6 +764,12 @@ module.exports = ->
       expect(() =>
         @col.aggregate({$xxx: {_id: '$name', max: {$sum: 1}}})
       ).to.throw('This pipeline operator is not supported with this browser version of MongoDB')
+      done()
+
+    it 'throws with just a string', (done) ->
+      expect(() =>
+        @col.insert("test")
+      ).to.throw('Error: no object passed to insert')
       done()
 
     it 'aggregate $sum to variable ', (done) ->
