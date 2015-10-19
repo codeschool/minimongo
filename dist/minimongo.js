@@ -3284,6 +3284,11 @@ exports.update$set = function(selector, database, docs, item) {
       index = placeholder[placeholder.length - 1];
       database.items[item._id][placeholder[0]][index] = _.values(docs['$set'])[index];
     } else {
+      if (!database.items[item._id][k] && _.include(k, '$')) {
+        throw {
+          message: "The dollar ($) prefixed field " + k + " in " + k + " is not valid for storage."
+        };
+      }
       database.items[item._id][k] = v;
     }
   }
@@ -3305,6 +3310,10 @@ exports.update$max = function(database, docs, item) {
         database.items[item._id] = _.omit(item, 'doc', 'base');
         hit = true;
       }
+    } else if (!database.items[item._id][k] && _.include(k, '$')) {
+      throw {
+        message: "The dollar ($) prefixed field " + k + " in " + k + " is not valid for storage."
+      };
     } else if (database.items[item._id][k] < v) {
       database.items[item._id][k] = v;
       hit = true;
@@ -3332,6 +3341,10 @@ exports.update$min = function(database, docs, item) {
         database.items[item._id] = _.omit(item, 'doc', 'base');
         hit = true;
       }
+    } else if (!database.items[item._id][k] && _.include(k, '$')) {
+      throw {
+        message: "The dollar ($) prefixed field " + k + " in " + k + " is not valid for storage."
+      };
     } else if (database.items[item._id][k] > v) {
       database.items[item._id][k] = v;
       hit = true;
@@ -3354,6 +3367,10 @@ exports.update$mul = function(database, docs, item) {
       keys = exports.prepareDot(k);
       exports.convertDot(item, keys[0])[keys[1]] = exports.convertDot(item, keys[0])[keys[1]] * v;
       database.items[item._id] = _.omit(item, 'doc', 'base');
+    } else if (!database.items[item._id][k] && _.include(k, '$')) {
+      throw {
+        message: "The dollar ($) prefixed field " + k + " in " + k + " is not valid for storage."
+      };
     } else {
       database.items[item._id][k] = database.items[item._id][k] * v;
     }

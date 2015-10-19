@@ -196,6 +196,8 @@ exports.update$set = (selector, database, docs, item) ->
       index = placeholder[placeholder.length - 1]
       database.items[item._id][placeholder[0]][index] = _.values(docs['$set'])[index]
     else
+      if !database.items[item._id][k] and _.include(k, '$')
+        throw {message: "The dollar ($) prefixed field "+k+" in "+k+" is not valid for storage."}
       database.items[item._id][k] = v
   docUpdate
 
@@ -210,6 +212,8 @@ exports.update$max = (database, docs, item) ->
         exports.convertDot(item, keys[0])[keys[1]] = v
         database.items[item._id] = _.omit(item, 'doc', 'base')
         hit = true
+    else if !database.items[item._id][k] and _.include(k, '$')
+        throw {message: "The dollar ($) prefixed field "+k+" in "+k+" is not valid for storage."}
     else if database.items[item._id][k] < v
       database.items[item._id][k] = v
       hit = true
@@ -230,6 +234,8 @@ exports.update$min = (database, docs, item) ->
         exports.convertDot(item, keys[0])[keys[1]] = v
         database.items[item._id] = _.omit(item, 'doc', 'base')
         hit = true
+    else if !database.items[item._id][k] and _.include(k, '$')
+        throw {message: "The dollar ($) prefixed field "+k+" in "+k+" is not valid for storage."}
     else if database.items[item._id][k] > v
       database.items[item._id][k] = v
       hit = true
@@ -246,6 +252,8 @@ exports.update$mul = (database, docs, item) ->
       keys = exports.prepareDot(k)
       exports.convertDot(item, keys[0])[keys[1]] = exports.convertDot(item, keys[0])[keys[1]] * v
       database.items[item._id] = _.omit(item, 'doc', 'base')
+    else if !database.items[item._id][k] and _.include(k, '$')
+        throw {message: "The dollar ($) prefixed field "+k+" in "+k+" is not valid for storage."}
     else
       database.items[item._id][k] = database.items[item._id][k] * v
   docUpdate

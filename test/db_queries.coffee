@@ -471,6 +471,30 @@ module.exports = ->
 
 
     #update
+    it 'throws if update with $set field using dollar', (done) ->
+      item = @col.insert { name: "xxx", price: 123 }
+      expect(() =>
+        @col.update({name: 'xxx'}, {$set: {$price: 0}})).to.throw 'The dollar ($) prefixed field $price in $price is not valid for storage.'
+      done()
+
+    it 'throws if update with $max field using dollar', (done) ->
+      item = @col.insert { name: "xxx", price: 123 }
+      expect(() =>
+        @col.update({name: 'xxx'}, {$max: {$price: 0}})).to.throw 'The dollar ($) prefixed field $price in $price is not valid for storage.'
+      done()
+
+    it 'throws if update with $min field using dollar', (done) ->
+      item = @col.insert { name: "xxx", price: 123 }
+      expect(() =>
+        @col.update({name: 'xxx'}, {$min: {$price: 0}})).to.throw 'The dollar ($) prefixed field $price in $price is not valid for storage.'
+      done()
+
+    it 'throws if update with $mul field using dollar', (done) ->
+      item = @col.insert { name: "xxx", price: 123 }
+      expect(() =>
+        @col.update({name: 'xxx'}, {$mul: {$price: 0}})).to.throw 'The dollar ($) prefixed field $price in $price is not valid for storage.'
+      done()
+
     it 'throws if no args update', (done) ->
       expect(() =>
         @col.update()).to.throw 'Error: no object passed to update'
