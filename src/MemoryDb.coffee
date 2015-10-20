@@ -120,6 +120,7 @@ class Collection
     found = processFind(@items, selector, options)
     ids = _.collect(found, '_id')
     for id in ids
+      @removes[id] = @items[id]
       @items = _.omit(@items, id)
 
   cache: (docs, selector, options, success, error) ->

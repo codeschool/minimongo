@@ -1576,6 +1576,7 @@ Collection = (function() {
     _results = [];
     for (_i = 0, _len = ids.length; _i < _len; _i++) {
       id = ids[_i];
+      this.removes[id] = this.items[id];
       _results.push(this.items = _.omit(this.items, id));
     }
     return _results;
