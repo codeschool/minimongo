@@ -3281,8 +3281,8 @@ exports.update$set = function(selector, database, docs, item) {
       database.items[item._id][placeholder[0]][index] = _.values(docs['$set'])[0];
     } else if (!isNaN(placeholder[placeholder.length - 1])) {
       arr = database.items[item._id][placeholder[0]];
-      index = placeholder[placeholder.length - 1];
-      database.items[item._id][placeholder[0]][index] = _.values(docs['$set'])[index];
+      index = parseInt(placeholder[placeholder.length - 1]);
+      database.items[item._id][placeholder[0]][index] = v;
     } else {
       if (!database.items[item._id][k] && _.include(k, '$')) {
         throw {

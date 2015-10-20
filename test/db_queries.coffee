@@ -545,6 +545,15 @@ module.exports = ->
       assert.equal results[0].car[1], 'fiat'
       done()
   
+    it 'update uses $set with array third index to update array', (done) ->
+      item = @col.insert { name: 'dan', car: ['honda', 'ford', 'hyundai']}
+      item = @col.update {name: 'dan'}, { $set: {"car.2": 'ferrari'}}
+      results = @col.find({name: 'dan'})
+      assert.equal results[0].car[0], 'honda'
+      assert.equal results[0].car[1], 'ford'
+      assert.equal results[0].car[2], 'ferrari'
+      done()
+  
     it 'update uses $set with array index to update array', (done) ->
       item = @col.insert { name: 'dan', car: ['honda', 'ford']}
       item = @col.update {name: 'dan'}, { $set: {"car.0": 'ford'}}
