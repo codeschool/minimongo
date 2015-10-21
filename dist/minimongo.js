@@ -3405,6 +3405,9 @@ exports.convertDot = function(obj, _is, value) {
 
 exports.processFind = function(items, selector, options) {
   var filtered, me;
+  if (_.isArray(selector)) {
+    return [];
+  }
   filtered = _.filter(_.values(items), compileDocumentSelector(selector));
   filtered = processNearOperator(selector, filtered);
   filtered = processGeoIntersectsOperator(selector, filtered);

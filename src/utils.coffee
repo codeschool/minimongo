@@ -282,6 +282,7 @@ exports.convertDot = (obj, _is, value) ->
 
 # Processes a find with sorting and filtering and limiting
 exports.processFind = (items, selector, options) ->
+  if _.isArray(selector) then return []
   filtered = _.filter(_.values(items), compileDocumentSelector(selector))
 
   # Handle geospatial operators

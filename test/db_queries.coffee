@@ -28,6 +28,11 @@ module.exports = ->
         @col.insert { _id:"3", a:"Bob", b:3 , lengths: [5,3,4]}
         done()
 
+    it 'doesnt return results when array passed into find', (done) ->
+      results = @col.find([{_id: 1}])
+      assert.equal results.length, 0
+      done()
+
     it 'doesnt return results when using elemMatch without any operators', (done) ->
       results = @col.find({"lengths": {$elemMatch: {}}})
       assert.equal results.length, 0
