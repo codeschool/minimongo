@@ -2727,8 +2727,6 @@ LocalCollection._f = {
       return 9;
     if (EJSON.isBinary(v))
       return 5;
-    if (v instanceof Meteor.Collection.ObjectID)
-      return 7;
     return 3; // object
 
     // XXX support some/all of these:
@@ -2779,6 +2777,9 @@ LocalCollection._f = {
   // any other value.) return negative if a is less, positive if b is
   // less, or 0 if equal
   _cmp: function (a, b) {
+    if(typeof a == 'object'){
+      return -1
+    }
     if (a === undefined)
       return b === undefined ? 0 : -1;
     if (b === undefined)

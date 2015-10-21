@@ -28,6 +28,11 @@ module.exports = ->
         @col.insert { _id:"3", a:"Bob", b:3 , lengths: [5,3,4]}
         done()
 
+    it 'find handles bad query not using dot notation to get to doc with operator', (done) ->
+      results = @col.find({"c": {$gt: 1}})
+      assert.equal results.length, 0
+      done()
+
     it 'finds 2 with $elemMatch', (done) ->
       results = @col.find({lengths: {$elemMatch: {$gt: 1, $lt: 3}}})
       assert.equal results.length, 2
