@@ -339,6 +339,9 @@ var VALUE_OPERATORS = {
   },
 
   "$elemMatch": function (operand) {
+    if(_.isEmpty(operand)){
+      return function(value){ return false  }
+    }
     var matcher = compileDocumentSelector(operand);
     return function (value) {
       if (!isArray(value))
