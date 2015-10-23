@@ -93,7 +93,7 @@ class Collection
 
   update: (selector, docs, bases, success, error) ->
     #throw if not all args
-    if(_.isEmpty(selector) and _.isEmpty(docs) and typeof selector != 'object' and typeof docs != 'object')
+    if((_.isEmpty(selector) and _.isEmpty(docs) and typeof selector != 'object' and typeof docs != 'object') or !docs)
       throw {message: "Error: no object passed to update"}
     #return if empty objects
     theItems = processFind(@items, selector)

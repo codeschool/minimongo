@@ -515,6 +515,11 @@ module.exports = ->
         @col.update()).to.throw 'Error: no object passed to update'
       done()
 
+    it 'throws if only one object', (done) ->
+      expect(() =>
+        @col.update({})).to.throw 'Error: no object passed to update'
+      done()
+
     it 'does not throw if args both args are empty objects', (done) ->
       expect(() =>
         @col.update({}, {})).to.not.throw 'Error: no object passed to update'
