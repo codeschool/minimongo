@@ -383,6 +383,9 @@ exports.aggregateGroup = (filtered, items, selector, options) ->
   # throw if no _id
   if !_.include(keys, '_id')
     throw {message: '_id field was not supplied'}
+  
+  if typeof selector['$group']['_id'] == 'string' and selector['$group']['_id'].trim() == "$"
+    throw {message: "'$' by itself is not a valid FieldPath"}
 
   for item in _items
     h = {}

@@ -799,6 +799,13 @@ module.exports = ->
       assert.equal result[0]._id, 1
       done()
 
+    it 'throws if only $ for field path', (done) ->
+      item = @col.insert { name: 'jack', status: 'awesome', age: 20, car: {'make': 12} }
+      expect(() =>
+        @col.aggregate({$group: {_id: '$', max: {$sum: 1}}})
+      ).to.throw("'$' by itself is not a valid FieldPath")
+      done()
+
     it 'throws without $ pipeline operator', (done) ->
       item = @col.insert { name: 'jack', status: 'awesome', age: 20, car: {'make': 12} }
       item = @col.insert { name: 'jack', status: 'awesome', age: 2, car: {'make': 12} }
