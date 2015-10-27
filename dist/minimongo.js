@@ -475,8 +475,8 @@ Collection = (function() {
     }
     theItems = processFind(this.items, selector);
     me = this;
-    _.map(_.keys(theItems), function(key) {
-      return me.founds[theItems[key]._id] = docs;
+    _.map(theItems, function(item) {
+      return me.founds[item._id] = docs;
     });
     if (!_.isEmpty(docs)) {
       return utils.processUpdate(theItems, selector, docs, bases, this);

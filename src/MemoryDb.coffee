@@ -99,8 +99,8 @@ class Collection
     theItems = processFind(@items, selector)
     #keep track of found records for writeResult
     me = this
-    _.map(_.keys(theItems), (key) ->
-      me.founds[theItems[key]._id] = docs
+    _.map(theItems, (item) ->
+      me.founds[item._id] = docs
     )
 
     if(!_.isEmpty(docs))
