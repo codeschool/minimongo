@@ -275,11 +275,6 @@ exports.convertDot = (obj, _is, value) ->
     exports.convertDot obj[_is[0]], _is.slice(1), value
 
 
-# exports.processDot = (item, docs, database) ->
-    
-    # database.items[item._id][k] = database.items[item._id][k] * v
-
-
 # Processes a find with sorting and filtering and limiting
 exports.processFind = (items, selector, options) ->
   if _.isArray(selector) then return []
@@ -428,8 +423,6 @@ exports.compileDollar = (item, value) ->
   else
     value
 
-
-
 exports.processOperation = (it, sum_key) ->
   if typeof sum_key == 'number'
     return sum_key
@@ -513,8 +506,7 @@ exports.aggregateSort = (selector, filtered) ->
   filtered
 
 exports.checkIfMatch = (filt, it, _id, sum_key) ->
-  filt['_id'] == exports.processOperation(it, _id) || _id == filt['_id'] or (it[_id] == filt['_id'] and (typeof sum_key == 'number' || _.include(sum_key, '$')))
-
+  filt['_id'] == exports.processOperation(it, _id) or _id == filt['_id'] or (it[_id] == filt['_id'] and (typeof sum_key == 'number' or _.include(sum_key, '$')))
 
 exports.aggregateProject = (selector, filtered) ->
   keys = Object.keys(selector['$project'])
@@ -522,7 +514,6 @@ exports.aggregateProject = (selector, filtered) ->
   for k in keys
     if selector['$project'][k]
       keep.push k
-
 
   #need to check if id is wanted
   if selector['$project']['_id']
@@ -532,11 +523,12 @@ exports.aggregateProject = (selector, filtered) ->
   for filt in filtered
     temp = {}
     for key in keep
-      if !filt[key] and !filt[key.replace('$', '')]
+      strippedKey = key.replace('$', '')
+      if !filt[key] and !filt[strippedKey]
         k = key.split('.')
         temp[k[0]] = filt[k[0]]
-      else if filt[key.replace('$', '')]
-        temp[key.replace('$', '')] = filt[key.replace('$', '')]
+      else if filt[strippedKey]
+        temp[strippedKey] = filt[strippedKey]
     _temp_filtered.push temp
   filtered = _temp_filtered
 
@@ -567,8 +559,6 @@ exports.processAggregate = (items, selector, options) ->
     if key['$skip']
       filtered.splice(0, key['$skip'])
   return filtered
-
-
 
 exports.filterFields = (items, fields={}) ->
   # Handle trivial case
