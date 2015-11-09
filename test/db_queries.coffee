@@ -270,30 +270,30 @@ module.exports = ->
       done()
 
     it 'adds _id to rows', (done) ->
-      @col.upsert { a: "1" }, (item) ->
-        assert.property item, '_id'
-        assert.lengthOf item._id, 32
-        done()
+      item = @col.upsert { a: "1" }
+      assert.property item[0].doc, '_id'
+      assert.lengthOf item[0].doc._id, 32
+      done()
 
     it 'returns array if called with array', (done) ->
-      @col.upsert [{ a: "1" }], (items) ->
-        assert.equal items[0].a, "1"
-        done()
+      items = @col.upsert [{ a: "1" }]
+      assert.equal items[0].doc.a, "1"
+      done()
 
     it 'updates by id', (done) ->
-      @col.upsert { _id:"1", a:"1" }, (item) =>
-        @col.upsert { _id:"1", a:"2", b: 1 }, (item) =>
-          assert.equal item.a, "2"
+      item = @col.upsert { _id:"1", a:"1" }
+      item2 = @col.upsert { _id:"1", a:"2", b: 1 }
+      assert.equal item2[0].doc.a, "2"
 
-          results = @col.find({ _id: "1" })
-          assert.equal 1, results.length, "Should be only one document"
-          done()
+      results = @col.find({ _id: "1" })
+      assert.equal 1, results.length, "Should be only one document"
+      done()
 
     it 'call upsert with upserted row', (done) ->
-      @col.upsert { _id:"1", a:"1" }, (item) ->
-        assert.equal item._id, "1"
-        assert.equal item.a, "1"
-        done()
+      item = @col.upsert { _id:"1", a:"1" }
+      assert.equal item[0].doc._id, "1"
+      assert.equal item[0].doc.a, "1"
+      done()
 
   it 'upserts multiple rows', (done) ->
     @timeout(10000)
@@ -302,11 +302,10 @@ module.exports = ->
       for i in [0...100]
         docs.push { b: i }
 
-      @col.upsert docs, =>
-        results = @col.find({})
-        assert.equal results.length, 100
-        done()
-      , error
+      @col.upsert docs
+      results = @col.find({})
+      assert.equal results.length, 100
+      done()
 
   context 'With sample with capitalization', ->
     beforeEach (done) ->
@@ -450,10 +449,10 @@ module.exports = ->
             coordinates: [[
               [89.5, 45.5], [89.5, 46.5], [90.5, 46.5], [90.5, 45.5], [89.5, 45.5]
             ]]
-      @col.upsert { _id:5 }, =>
-        results = @col.find(selector)
-        assert.deepEqual _.pluck(results, '_id'), ["2"]
-        done()
+      results = @col.upsert { _id:5 }
+      results = @col.find(selector)
+      assert.deepEqual _.pluck(results, '_id'), ["2"]
+      done()
 
   context 'With insert and update', ->
     beforeEach (done) ->

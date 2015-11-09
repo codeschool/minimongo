@@ -10,22 +10,19 @@ module.exports = class MemoryDb
 
     if success then success(this)
 
-  addCollection: (name, success, error) ->
+  addCollection: (name) ->
     collection = new Collection(name)
     @[name] = collection
     @collections[name] = collection
-    if success? then success()
 
-  createCollection: (name, success, error) ->
+  createCollection: (name) ->
     collection = new Collection(name)
     @[name] = collection
     @collections[name] = collection
-    if success? then success()
 
-  removeCollection: (name, success, error) ->
+  removeCollection: (name) ->
     delete @[name]
     delete @collections[name]
-    if success? then success()
 
 # Stores data in memory
 class Collection
@@ -41,18 +38,16 @@ class Collection
   find: (selector, options) ->
     return @_findFetch(selector, options)
 
-  findOne: (selector, options, success, error) ->
-    if _.isFunction(options)
-      [options, success, error] = [{}, options, success]
+  findOne: (selector, options) ->
 
     results = @find(selector, options)
     if !!results then return results[0] else return null
 
-  _findFetch: (selector, options, success, error) ->
+  _findFetch: (selector, options) ->
     return processFind(@items, selector, options)
 
-  upsert: (docs, bases, success, error) ->
-    [items, success, error] = utils.regularizeUpsert(docs, bases, success, error)
+  upsert: (docs, bases) ->
+    [items] = utils.regularizeUpsert(docs, bases)
 
     for item in items
       # Fill in base if undefined
@@ -70,13 +65,11 @@ class Collection
       @items[item.doc._id] = item.doc
       @upserts[item.doc._id] = item
 
-    # dont remove right now!
-    if success then success(docs)
 
-  insert: (docs, bases, success, error) ->
+  insert: (docs, bases) ->
     if((_.isEmpty(docs) and typeof docs != 'object') or typeof docs == 'string')
       throw {message: "Error: no object passed to insert"}
-    [items, success, error] = utils.regularizeUpsert(docs, bases, success, error)
+    [items] = utils.regularizeUpsert(docs, bases)
 
     for item in items
       # Fill in base if undefined
@@ -91,7 +84,7 @@ class Collection
         throw 'Duplicate ID'
     return null
 
-  update: (selector, docs, bases, success, error) ->
+  update: (selector, docs, bases) ->
     #throw if not all args
     if((_.isEmpty(selector) and _.isEmpty(docs) and typeof selector != 'object' and typeof docs != 'object') or !docs)
       throw {message: "Error: no object passed to update"}
@@ -116,7 +109,7 @@ class Collection
       selectors = selectors[0]
     return processAggregate(@items, selectors)
 
-  remove: (selector, options, error) ->
+  remove: (selector, options) ->
     found = processFind(@items, selector, options)
     ids = _.collect(found, '_id')
     for id in ids

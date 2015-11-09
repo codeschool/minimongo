@@ -359,32 +359,23 @@ module.exports = MemoryDb = (function() {
     }
   }
 
-  MemoryDb.prototype.addCollection = function(name, success, error) {
+  MemoryDb.prototype.addCollection = function(name) {
     var collection;
     collection = new Collection(name);
     this[name] = collection;
-    this.collections[name] = collection;
-    if (success != null) {
-      return success();
-    }
+    return this.collections[name] = collection;
   };
 
-  MemoryDb.prototype.createCollection = function(name, success, error) {
+  MemoryDb.prototype.createCollection = function(name) {
     var collection;
     collection = new Collection(name);
     this[name] = collection;
-    this.collections[name] = collection;
-    if (success != null) {
-      return success();
-    }
+    return this.collections[name] = collection;
   };
 
-  MemoryDb.prototype.removeCollection = function(name, success, error) {
+  MemoryDb.prototype.removeCollection = function(name) {
     delete this[name];
-    delete this.collections[name];
-    if (success != null) {
-      return success();
-    }
+    return delete this.collections[name];
   };
 
   return MemoryDb;
@@ -405,11 +396,8 @@ Collection = (function() {
     return this._findFetch(selector, options);
   };
 
-  Collection.prototype.findOne = function(selector, options, success, error) {
-    var results, _ref;
-    if (_.isFunction(options)) {
-      _ref = [{}, options, success], options = _ref[0], success = _ref[1], error = _ref[2];
-    }
+  Collection.prototype.findOne = function(selector, options) {
+    var results;
     results = this.find(selector, options);
     if (!!results) {
       return results[0];
@@ -418,13 +406,14 @@ Collection = (function() {
     }
   };
 
-  Collection.prototype._findFetch = function(selector, options, success, error) {
+  Collection.prototype._findFetch = function(selector, options) {
     return processFind(this.items, selector, options);
   };
 
-  Collection.prototype.upsert = function(docs, bases, success, error) {
-    var item, items, _i, _len, _ref;
-    _ref = utils.regularizeUpsert(docs, bases, success, error), items = _ref[0], success = _ref[1], error = _ref[2];
+  Collection.prototype.upsert = function(docs, bases) {
+    var item, items, _i, _len, _results;
+    items = utils.regularizeUpsert(docs, bases)[0];
+    _results = [];
     for (_i = 0, _len = items.length; _i < _len; _i++) {
       item = items[_i];
       if (item.base === void 0) {
@@ -436,21 +425,19 @@ Collection = (function() {
       }
       item = _.cloneDeep(item);
       this.items[item.doc._id] = item.doc;
-      this.upserts[item.doc._id] = item;
+      _results.push(this.upserts[item.doc._id] = item);
     }
-    if (success) {
-      return success(docs);
-    }
+    return _results;
   };
 
-  Collection.prototype.insert = function(docs, bases, success, error) {
-    var item, items, _i, _len, _ref;
+  Collection.prototype.insert = function(docs, bases) {
+    var item, items, _i, _len;
     if ((_.isEmpty(docs) && typeof docs !== 'object') || typeof docs === 'string') {
       throw {
         message: "Error: no object passed to insert"
       };
     }
-    _ref = utils.regularizeUpsert(docs, bases, success, error), items = _ref[0], success = _ref[1], error = _ref[2];
+    items = utils.regularizeUpsert(docs, bases)[0];
     for (_i = 0, _len = items.length; _i < _len; _i++) {
       item = items[_i];
       if (item.base === void 0) {
@@ -466,7 +453,7 @@ Collection = (function() {
     return null;
   };
 
-  Collection.prototype.update = function(selector, docs, bases, success, error) {
+  Collection.prototype.update = function(selector, docs, bases) {
     var me, theItems;
     if ((_.isEmpty(selector) && _.isEmpty(docs) && typeof selector !== 'object' && typeof docs !== 'object') || !docs) {
       throw {
@@ -499,7 +486,7 @@ Collection = (function() {
     return processAggregate(this.items, selectors);
   };
 
-  Collection.prototype.remove = function(selector, options, error) {
+  Collection.prototype.remove = function(selector, options) {
     var found, id, ids, _i, _len, _results;
     found = processFind(this.items, selector, options);
     ids = _.collect(found, '_id');
